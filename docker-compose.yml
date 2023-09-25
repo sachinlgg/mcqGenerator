@@ -1,0 +1,53 @@
+version: '3.9'
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ['./wait-for-it.sh', 'db:5432', '--', 'python3', 'main.py']
+    depends_on:
+      - db
+    environment:
+      SLACK_APP_TOKEN: 'xapp-1-A05TSBC6N04-5941847473587-1804752414e4d328fecf58726e2d476f0b51dbdb849b2f87ba53c781b877ef94'
+      SLACK_BOT_TOKEN: 'xoxb-5935286290582-5939013383509-lyxi54JzTzCQyMTY7yV9xBzC'
+      SLACK_USER_TOKEN: 'xoxp-5935286290582-5927394664007-5954575675985-ebe04d55b4ae5e9fe7e0c985834b2041'
+      POSTGRES_HOST: db
+      POSTGRES_DB: incident_bot
+      POSTGRES_USER: incident_bot
+      POSTGRES_PASSWORD: somepassword
+      POSTGRES_PORT: 5432
+      PAGERDUTY_API_TOKEN: 'u+ND4ivwQMgsxsCJns5A'
+      PAGERDUTY_API_USERNAME: 'Tech gooctoplus'
+      STATUSPAGE_API_KEY: 'test'
+      STATUSPAGE_PAGE_ID: '2'
+      STATUSPAGE_URL: 'https://status.absurd.design/'
+      ATLASSIAN_API_URL: 'https://gooctoplus.atlassian.net'
+      ATLASSIAN_API_USERNAME: 'aman@gooctoplus.com'
+      ATLASSIAN_API_TOKEN: 'ATATT3xFfGF0RpOE83XSdS9x-70jNzdJT13pCa7_oURmn-2UT0P7jQ2aukD8y0L-mMNQ3qzhUmfZuI-Gdu9tLeUJrbLNn3xLClfLGKl7Ue23JsXpoOxXxtQTKf-gL5LxkSDvdF-Teohyl54ull_h6x1vOJazYXgw-nnGnajBGAOPBtDxyMj--xM=0E97FCBD'
+      DEFAULT_WEB_ADMIN_PASSWORD: 'foobar1234'
+      FLASK_APP_SECRET_KEY: 'supersecret'
+      JWT_SECRET_KEY: 'supersecret'
+      CONFIG_FILE_PATH: '/config/incident-bot/config.yaml'
+      ZOOM_ACCOUNT_ID: '-9Ez02bfTRqOsHrIsgqYuA'
+      ZOOM_CLIENT_ID: 'T8SeCEQzRxK9g6g_BZ9WQ'
+      ZOOM_CLIENT_SECRET: 'z4xTMQilgkgYo06f7V97b891lm4KeozF'
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: host
+    links:
+      - db
+    volumes:
+      # Wherever the config file lives, root by default
+      - ./backend/config.yaml:/config/incident-bot/config.yaml
+  db:
+    image: postgres:13
+    command:
+      ['postgres', '-c', 'log_statement=all', '-c', 'log_destination=stderr']
+    hostname: db
+    environment:
+      POSTGRES_PASSWORD: 'somepassword'
+      POSTGRES_USER: 'incident_bot'
+    ports:
+      - 5432:5432

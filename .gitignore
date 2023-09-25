@@ -1,0 +1,16 @@
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Docker
+docker-compose.dev.yml
+
+# Other
+.vscode/
+slack_app_manifest.yaml
+test.py
+logs/
+
+.DS_Store
+deploy/kustomize/incident-bot/base/db.yaml
