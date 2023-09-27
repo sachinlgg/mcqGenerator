@@ -78,7 +78,7 @@ integrations:
   # Enable Statuspage integration
   statuspage:
 #    # The public URL of the Statuspage.
-    url: https://status.mydomain
+    url: https://gooctoplus1.statuspage.io/
 #    # Which Slack groups have permissions to manage Statuspage incidents?
 #    # If not provided, everyone can manage Statuspage incidents from Slack.
 #    # permissions:
@@ -89,5 +89,5 @@ integrations:
     # Set to true to automatically generate a Zoom meeting for each incident
     auto_create_meeting: true
 links:
-  incident_guide: https://changeme.com
-  incident_postmortems: https://changeme.com
+  incident_guide: https://gooctoplus.atlassian.net/wiki/spaces/ENG/pages/98470/Incident+Guide
+  incident_postmortems: https://gooctoplus.atlassian.net/wiki/spaces/ENG/pages/98426/Postmortems

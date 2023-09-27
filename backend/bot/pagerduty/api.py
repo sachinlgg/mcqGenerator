@@ -82,7 +82,7 @@ def find_who_is_on_call(short: bool = False) -> Dict:
         Session.remove()
     slack_users = {
         user["real_name"]: user["id"]
-        for user in slack_users_from_dict
+        for user in slack_users_from_dict["json_data"]
         if user.__contains__("real_name")
     }
     for oc in session.iter_all("oncalls"):

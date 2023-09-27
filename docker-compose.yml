@@ -17,10 +17,10 @@ services:
       POSTGRES_PASSWORD: somepassword
       POSTGRES_PORT: 5432
       PAGERDUTY_API_TOKEN: 'u+ND4ivwQMgsxsCJns5A'
-      PAGERDUTY_API_USERNAME: 'Tech gooctoplus'
-      STATUSPAGE_API_KEY: 'test'
-      STATUSPAGE_PAGE_ID: '2'
-      STATUSPAGE_URL: 'https://status.absurd.design/'
+      PAGERDUTY_API_USERNAME: 'aman@gooctoplus.com'
+      STATUSPAGE_API_KEY: 'ef3a8f8ae5bb44e88bf4c667978a0990'
+      STATUSPAGE_PAGE_ID: '0cqcvf2hnt1h'
+      STATUSPAGE_URL: 'https://gooctoplus1.statuspage.io/'
       ATLASSIAN_API_URL: 'https://gooctoplus.atlassian.net'
       ATLASSIAN_API_USERNAME: 'aman@gooctoplus.com'
       ATLASSIAN_API_TOKEN: 'ATATT3xFfGF0RpOE83XSdS9x-70jNzdJT13pCa7_oURmn-2UT0P7jQ2aukD8y0L-mMNQ3qzhUmfZuI-Gdu9tLeUJrbLNn3xLClfLGKl7Ue23JsXpoOxXxtQTKf-gL5LxkSDvdF-Teohyl54ull_h6x1vOJazYXgw-nnGnajBGAOPBtDxyMj--xM=0E97FCBD'
@@ -31,6 +31,7 @@ services:
       ZOOM_ACCOUNT_ID: '-9Ez02bfTRqOsHrIsgqYuA'
       ZOOM_CLIENT_ID: 'T8SeCEQzRxK9g6g_BZ9WQ'
       ZOOM_CLIENT_SECRET: 'z4xTMQilgkgYo06f7V97b891lm4KeozF'
+      CHAT_GPT_API_KEY: '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'
     ports:
       - target: 3000
         published: 3000
