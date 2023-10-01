@@ -2,8 +2,8 @@ _metadata:
   major_version: 1
   minor_version: 1
 display_information:
-  name: incident-bot
-  description: Incident Bot helps run incidents.
+  name: Octo
+  description: Octo helps run incidents.
   background_color: '#000a47'
 features:
   app_home:
@@ -11,25 +11,25 @@ features:
     messages_tab_enabled: true
     messages_tab_read_only_enabled: true
   bot_user:
-    display_name: incident-bot
+    display_name: Octo
     always_online: false
   shortcuts:
-    - name: Provide incident update
+    - name: Share Incident Update
       type: global
       callback_id: open_incident_general_update_modal
-      description: Provides a status update regarding an incident to the incidents channel.
-    - name: Start a new incident
+      description: Share an incident status update in the dedicated 'Incidents' channel.
+    - name: Create a new Incident
       type: global
       callback_id: open_incident_modal
-      description: Creates a new incident.
-    - name: Incident Bot Pager
+      description: Seamlessly handle incidents in a dedicated Slack 'War Room,' with efficient updates and role management, for effortless resolution.
+    - name: Page the Incident
       type: global
       callback_id: open_incident_bot_pager
-      description: Allows you to page a team in PagerDuty when running incidents via Incident Bot.
-    - name: Incident Timeline
+      description: Page Relevant Team in PagerDuty during incidents via Octo.
+    - name: Manage Incident Timeline
       type: global
       callback_id: open_incident_bot_timeline
-      description: Allows you to manage an incident's timeline.
+      description: Octo Allows you to Visualize and manage an incident's timeline.
 oauth_config:
   scopes:
     user:

@@ -48,7 +48,7 @@ def update_home_tab(client, event, logger):
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": ":robot_face: Incident Bot",
+                "text": ":octopus: Octo",
             },
         },
         {
@@ -58,7 +58,7 @@ def update_home_tab(client, event, logger):
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Start New Incident",
+                        "text": "Create New Incident",
                         "emoji": True,
                     },
                     "value": "show_incident_modal",
@@ -74,8 +74,8 @@ def update_home_tab(client, event, logger):
                 "type": "mrkdwn",
                 "text": "*Hi there, <@"
                 + event["user"]
-                + "> :wave:*!\n\nI'm your friendly Incident Bot, and my "
-                + "sole purpose is to help us identify and run incidents.\n",
+                + "> :wave:*!\n\nI'm your friendly Incident Companion,"
+                + "here for faster incident resolution..\n",
             },
         },
         {
@@ -90,21 +90,21 @@ def update_home_tab(client, event, logger):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "To start a new incident, you can do the following:\n"
+                "text": "To create a new incident, you can do the following:\n"
                 + "- Use the button here\n "
-                + "- Search for 'start a new incident' in the Slack search bar\n"
-                + "- type _/start_ in any Slack channel to find my command and run it.",
+                + "- Search for 'create a new incident' in the Slack search bar\n"
+                + "- type _/octo create_ in any Slack channel to find my command and run it.",
             },
         },
         {
             "type": "image",
             "title": {
                 "type": "plain_text",
-                "text": "How to start a new incident",
+                "text": "How to create a new incident",
                 "emoji": True,
             },
             "image_url": "https://i.imgur.com/bGGtLr4.png",
-            "alt_text": "how to start a new incident",
+            "alt_text": "how to create a new incident",
         },
         {
             "type": "header",
@@ -118,7 +118,7 @@ def update_home_tab(client, event, logger):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "I have a lot of features. To check them all out, visit my <https://docs.incidentbot.io/|docs>.",
+                "text": "I offer a plethora of features. Explore them all by visiting my <https://bugster.ai/>.",
             },
         },
         {
@@ -181,10 +181,10 @@ def open_modal(ack, body, client):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "This will start a new incident channel and you will "
-                + "be invited to it. From there, please use our incident "
-                + "management process to run the incident or coordinate "
-                + "with others to do so.",
+                "text": "This initiates a new incident channel, where you'll be invited. "
+                + "Utilize our incident management process, collaborate, "
+                + "and leverage the bot for issue identification, "
+                + "postmortem report automation, and RCA analysis.",
             },
         },
         {
@@ -192,7 +192,7 @@ def open_modal(ack, body, client):
             "block_id": "is_security_incident",
             "text": {
                 "type": "mrkdwn",
-                "text": "*Is this a security incident?*",
+                "text": "*Is this a critical incident?*",
             },
             "accessory": {
                 "action_id": "open_incident_modal_set_security_type",
@@ -273,7 +273,7 @@ def open_modal(ack, body, client):
                 "action_id": "open_incident_modal_set_description",
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "A brief description of the problem.",
+                    "text": "A brief description of the Incident.",
                 },
             },
             "label": {"type": "plain_text", "text": "Description"},

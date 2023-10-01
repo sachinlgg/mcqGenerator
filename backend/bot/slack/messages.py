@@ -35,14 +35,13 @@ def help_menu(include_header: bool = True) -> List:
         }
     )
     commands = {
-        "help": "This command that explains help options.",
-        "lsai": "List *all* incidents regardless of status.",
-        "lsoi": "List only incidents that are still *open* - as in non-resolved.",
-        "ls-sp-inc": "List *open* Statuspage incidents.",
-        "pager": "Return information from PagerDuty regarding who is currently on call. You may optionally page them.",
+        "help": "This command provides information about available help options.",
+        "lsai": "Display *all* past incidents regardless of status.",
+        "lsoi": "Display only incidents that are *open* - as in non-resolved.",
+        "ls-sp-inc": "Display *open* Statuspage incidents.",
+        "pager": "Retrieve current on-call information from PagerDuty; optionally initiate a page.",
+        "identify": "Assist in investigating ongoing incidents.",
         "ping": "Ping the bot to check and see if it's alive and responding.",
-        "scheduler list": "List any jobs tasked to the scheduler.",
-        "scheduler delete <job_id>": "Delete a job using the ID returned by scheduler list.",
         "version": "Have the bot respond with current application version.",
     }
     txt = ""

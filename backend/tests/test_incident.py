@@ -265,7 +265,7 @@ class TestIncidentManagement:
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": "We're in an incident - now what?",
+                        "text": "We're facing an incident - what's the next step?",
                     },
                 },
                 {

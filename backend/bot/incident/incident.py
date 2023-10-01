@@ -302,13 +302,13 @@ def create_incident(
             try:
                 conference_bridge_message = slack_web_client.chat_postMessage(
                     channel=created_channel_details["id"],
-                    text=f":busts_in_silhouette: Please join the conference here: {incident.conference_bridge}",
+                    text=f":busts_in_silhouette: Please Join the Incident Investigation Conference Here: {incident.conference_bridge}",
                     blocks=[
                         {
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": ":busts_in_silhouette: Please join the conference here.",
+                                "text": ":busts_in_silhouette: Join the Incident Investigation Conference Here.",
                             },
                         },
                         {"type": "divider"},
