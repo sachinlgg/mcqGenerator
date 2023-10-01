@@ -54,3 +54,14 @@ pip3 install "pytest-mock>=3.10.0"
 pip3 install "pytest-env>=0.8.1"
 
 pytest -vv tests/
+
+# Check if the container exists
+if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+  # Container exists, so stop and remove it
+  docker stop $CONTAINER_NAME
+  docker rm $CONTAINER_NAME
+  echo "Container '$CONTAINER_NAME' has been stopped and removed."
+else
+  # Container doesn't exist
+  echo "Container '$CONTAINER_NAME' does not exist."
+fi
