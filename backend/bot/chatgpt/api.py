@@ -31,7 +31,7 @@ class ChatGPTApi:
             logger.error(f"Please check ChatGPT API configuration and try again.")
             return False
 
-    def generate_incident_summary(self, slack_message):
+    async def generate_incident_summary(self, slack_message):
         """
         Generate a summary of an incident based on a Slack message using ChatGPT.
 
@@ -64,7 +64,7 @@ class ChatGPTApi:
             logger.error(f"Error generating incident summary: {error}")
             return None
 
-    def generate_incident_description(self, slack_message, additional_details=""):
+    async def generate_incident_description(self, slack_message, additional_details=""):
         """
         Generate a longer description of an incident including screenshots or links based on a Slack message using ChatGPT.
 
@@ -98,7 +98,7 @@ class ChatGPTApi:
             logger.error(f"Error generating incident description: {error}")
             return None
 
-    def generate_incident_rca(self, slack_messages):
+    async def generate_incident_rca(self, slack_messages):
         """
         Generate an Incident Root Cause Analysis (RCA) based on a series of Slack messages using ChatGPT.
 
@@ -134,7 +134,7 @@ class ChatGPTApi:
             logger.error(f"Error generating Incident RCA: {error}")
             return None
 
-    def generate_immediate_actions(self, slack_messages):
+    async def generate_immediate_actions(self, slack_messages):
         """
         Use ChatGPT to find immediate action items taken during an incident based on an incident channel Slack message.
 
@@ -168,7 +168,7 @@ class ChatGPTApi:
             logger.error(f"Error generating Incident RCA: {error}")
             return None
 
-    def generate_preventive_actions(self, slack_messages):
+    async def generate_preventive_actions(self, slack_messages):
         """
         Use ChatGPT to find preventive actions based on an incident channel Slack message.
 

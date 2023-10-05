@@ -2,6 +2,7 @@ import config
 import logging
 import slack_sdk.errors
 import variables
+import asyncio
 
 from bot.audit import log
 from bot.exc import IndexNotFoundError
@@ -429,7 +430,26 @@ async def set_status(
                 from bot.confluence.rca import IncidentRootCauseAnalysis
 
                 rca_title = " ".join(incident_data.incident_id.split("-")[2:])
-                incident_slack_messages = get_incident_slack_thread(incident_data.channel_id)
+                incident_summary = ""
+                incident_description = ""
+                incident_rca = ""
+                incident_immediate_actions = ""
+                incident_preventive_actions = ""
+                try:
+                    incident_slack_messages = get_incident_slack_thread(incident_data.channel_id)
+                    incident_summary_task = asyncio.create_task(generate_incident_summary(incident_data.channel_id, incident_slack_messages))
+                    incident_description_task = asyncio.create_task(generate_incident_description(incident_data.channel_id, incident_slack_messages))
+                    incident_rca_task = asyncio.create_task(generate_incident_rca(incident_data.channel_id, incident_slack_messages))
+                    incident_immediate_actions_task = asyncio.create_task(generate_incident_immediate_actions(incident_data.channel_id, incident_slack_messages))
+                    incident_preventive_actions_task = asyncio.create_task(generate_incident_preventive_actions(incident_data.channel_id, incident_slack_messages))
+                    await asyncio.gather(incident_summary_task, incident_description_task, incident_rca_task, incident_immediate_actions_task, incident_preventive_actions_task)
+                    incident_summary = incident_summary_task.result()
+                    incident_description = incident_description_task.result()
+                    incident_rca = incident_rca_task.result()
+                    incident_immediate_actions = incident_immediate_actions_task.result()
+                    incident_preventive_actions = incident_preventive_actions_task.result()
+                except Exception as error:
+                    logger.error(f"Error generating incident PostMoterm Content for {incident_data.channel_id}: {error}")
                 rca = IncidentRootCauseAnalysis(
                     incident_id=incident_data.incident_id,
                     rca_title=rca_title,
@@ -442,11 +462,11 @@ async def set_status(
                         incident_id=incident_data.incident_id
                     ),
                     timeline=log.read(incident_id=incident_data.incident_id),
-                    incident_summary = generate_incident_summary(incident_data.channel_id,incident_slack_messages),
-                    incident_description = generate_incident_description(incident_data.channel_id,incident_slack_messages),
-                    incident_rca = generate_incident_rca(incident_data.channel_id,incident_slack_messages),
-                    incident_immediate_actions = generate_incident_immediate_actions(incident_data.channel_id,incident_slack_messages),
-                    incident_preventive_actions = generate_incident_preventive_actions(incident_data.channel_id,incident_slack_messages),
+                    incident_summary = incident_summary,
+                    incident_description = incident_description,
+                    incident_rca = incident_rca,
+                    incident_immediate_actions = incident_immediate_actions,
+                    incident_preventive_actions = incident_preventive_actions,
                 )
                 rca_link = rca.create()
                 db_update_incident_rca_col(
@@ -840,7 +860,7 @@ def get_incident_slack_thread(channel_id: str):
         )
     return formatted_history
 
-def generate_incident_summary(channel_id: str, channel_history: str):
+async def generate_incident_summary(channel_id: str, channel_history: str):
     """
     Generate an incident summary based on Slack channel history using ChatGPT.
 
@@ -855,7 +875,7 @@ def generate_incident_summary(channel_id: str, channel_history: str):
 
     try:
         logger.info(f"Generating incident summary for {channel_id}.")
-        incident_summary = ChatGPTApi().generate_incident_summary(channel_history)
+        incident_summary = await ChatGPTApi().generate_incident_summary(channel_history)
         logger.info(f"Incident summary generated via GPT: {incident_summary}")
 
     except Exception as error:
@@ -863,7 +883,7 @@ def generate_incident_summary(channel_id: str, channel_history: str):
 
     return incident_summary
 
-def generate_incident_description(channel_id: str, channel_history: str):
+async def generate_incident_description(channel_id: str, channel_history: str):
     """
     Generate an incident description based on Slack channel history using ChatGPT.
 
@@ -878,7 +898,7 @@ def generate_incident_description(channel_id: str, channel_history: str):
 
     try:
         logger.info(f"Generating incident description for {channel_id}.")
-        incident_description = ChatGPTApi().generate_incident_description(channel_history)
+        incident_description = await ChatGPTApi().generate_incident_description(channel_history)
         logger.info(f"Incident description generated via GPT: {incident_description}")
 
     except Exception as error:
@@ -886,7 +906,7 @@ def generate_incident_description(channel_id: str, channel_history: str):
 
     return incident_description
 
-def generate_incident_rca(channel_id: str, channel_history: str):
+async def generate_incident_rca(channel_id: str, channel_history: str):
     """
     Generate an incident rca based on Slack channel history using ChatGPT.
 
@@ -901,7 +921,7 @@ def generate_incident_rca(channel_id: str, channel_history: str):
 
     try:
         logger.info(f"Generating incident rca for {channel_id}.")
-        incident_rca = ChatGPTApi().generate_incident_summary(channel_history)
+        incident_rca = await ChatGPTApi().generate_incident_summary(channel_history)
         logger.info(f"Incident rca generated via GPT: {incident_rca}")
 
     except Exception as error:
@@ -909,7 +929,7 @@ def generate_incident_rca(channel_id: str, channel_history: str):
 
     return incident_rca
 
-def generate_incident_immediate_actions(channel_id: str, channel_history: str):
+async def generate_incident_immediate_actions(channel_id: str, channel_history: str):
     """
     Generate an incident immediate_actions based on Slack channel history using ChatGPT.
 
@@ -924,7 +944,7 @@ def generate_incident_immediate_actions(channel_id: str, channel_history: str):
 
     try:
         logger.info(f"Generating incident immediate actions for {channel_id}.")
-        incident_immediate_actions = ChatGPTApi().generate_immediate_actions(channel_history)
+        incident_immediate_actions = await ChatGPTApi().generate_immediate_actions(channel_history)
         logger.info(f"Incident immediate actions generated via GPT: {incident_immediate_actions}")
 
     except Exception as error:
@@ -933,7 +953,7 @@ def generate_incident_immediate_actions(channel_id: str, channel_history: str):
     return incident_immediate_actions
 
 
-def generate_incident_preventive_actions(channel_id: str, channel_history: str):
+async def generate_incident_preventive_actions(channel_id: str, channel_history: str):
     """
     Generate an incident preventive_actions based on Slack channel history using ChatGPT.
 
@@ -948,7 +968,7 @@ def generate_incident_preventive_actions(channel_id: str, channel_history: str):
 
     try:
         logger.info(f"Generating incident preventive actions for {channel_id}.")
-        incident_preventive_actions = ChatGPTApi().generate_preventive_actions(channel_history)
+        incident_preventive_actions = await ChatGPTApi().generate_preventive_actions(channel_history)
         logger.info(f"Incident preventive actions generated via GPT: {incident_preventive_actions}")
 
     except Exception as error:
