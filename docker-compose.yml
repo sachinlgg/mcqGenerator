@@ -31,7 +31,7 @@ services:
       ZOOM_ACCOUNT_ID: '-9Ez02bfTRqOsHrIsgqYuA'
       ZOOM_CLIENT_ID: 'T8SeCEQzRxK9g6g_BZ9WQ'
       ZOOM_CLIENT_SECRET: 'z4xTMQilgkgYo06f7V97b891lm4KeozF'
-      CHAT_GPT_API_KEY: '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'
+      CHATGPT_API_KEY: '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'
     ports:
       - target: 3000
         published: 3000

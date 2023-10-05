@@ -12,7 +12,7 @@ class IncidentChannelDigestNotification:
         severity: str,
     ):
         if incident_channel_details.get("is_security_incident"):
-            header = ":fire::lock::fire_engine: New Security Incident"
+            header = ":fire::lock::fire_engine: New Critical Incident"
         else:
             header = ":fire::fire_engine: New Incident"
         return {
@@ -127,7 +127,7 @@ class IncidentChannelDigestNotification:
             else ":fire::fire_engine:"
         )
         incident_type = (
-            "Security Incident" if is_security_incident else "Incident"
+            "Critical Incident" if is_security_incident else "Incident"
         )
         if status == "resolved":
             header = f":white_check_mark: Resolved {incident_type} :white_check_mark:"

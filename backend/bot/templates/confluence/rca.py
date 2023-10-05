@@ -9,6 +9,11 @@ class RCATemplate:
         severity_definition: str,
         timeline: str,
         pinned_messages: str,
+        incident_summary: str,
+        incident_description: str,
+        incident_rca: str,
+        incident_immediate_actions: str,
+        incident_preventive_actions: str,
     ):
         return f"""
 <table data-layout="default" ac:local-id="{str(uuid.uuid4())}">
@@ -56,6 +61,7 @@ class RCATemplate:
 <ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="{str(uuid.uuid4())}">
   <ac:rich-text-body>
     <p>A summary of the impact of this incident should go here.</p>
+    <p>{incident_summary}</p>
   </ac:rich-text-body>
 </ac:structured-macro>
 
@@ -98,6 +104,7 @@ class RCATemplate:
 <ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="{str(uuid.uuid4())}">
   <ac:rich-text-body>
     <p>Longer description of the problem with screenshots/links to help readers understand the entire incident.</p>
+    <p>{incident_description}</p>
   </ac:rich-text-body>
 </ac:structured-macro>
 
@@ -105,6 +112,7 @@ class RCATemplate:
 <ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="{str(uuid.uuid4())}">
   <ac:rich-text-body>
     <p>Explain the root cause of the issue.</p>
+    <p>{incident_rca}</p>
   </ac:rich-text-body>
 </ac:structured-macro>
 
@@ -114,6 +122,7 @@ class RCATemplate:
 <ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="{str(uuid.uuid4())}">
   <ac:rich-text-body>
     <p>Actions to mitigate the impact of the incident directly following declaration should be listed here.</p>
+    <p>{incident_immediate_actions}</p>
   </ac:rich-text-body>
 </ac:structured-macro>
 
@@ -121,6 +130,7 @@ class RCATemplate:
 <ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="{str(uuid.uuid4())}">
   <ac:rich-text-body>
     <p>What can be implemented to avoid this condition in the future?</p>
+    <p>{incident_preventive_actions}</p>
   </ac:rich-text-body>
 </ac:structured-macro>
 

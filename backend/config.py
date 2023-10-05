@@ -258,6 +258,17 @@ class Configuration:
                             },
                         },
                     },
+                    "chatgpt": {
+                        "required": False,
+                        "type": "dict",
+                        "schema": {
+                            "auto_improve_rca": {
+                                "required": True,
+                                "type": "boolean",
+                                "empty": False,
+                            },
+                        },
+                    },
                 },
             },
             "links": {
@@ -392,6 +403,11 @@ flask_debug_mode = os.getenv("FLASK_DEBUG_MODE_ENABLED", default="false") in (
 )
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
 
+
+"""
+Chatgpt
+"""
+chatgpt_api_key = os.getenv("CHATGPT_API_KEY", default="")
 """
 Helper Methods
 """
@@ -473,6 +489,15 @@ def env_check(required_envs: List[str]):
             if os.getenv(var) == "":
                 logger.fatal(
                     f"If enabling Zoom meeting auto-create, the {var} variable must be set."
+                )
+                sys.exit(1)
+    if "chatgpt" in active.integrations:
+        for var in [
+            "CHATGPT_API_KEY",
+        ]:
+            if os.getenv(var) == "":
+                logger.fatal(
+                    f"If enabling the ChatGpt Integration, the {var} variable must be set."
                 )
                 sys.exit(1)
 

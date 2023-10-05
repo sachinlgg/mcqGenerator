@@ -17,6 +17,12 @@ class IncidentRootCauseAnalysis:
         severity_definition: str,
         pinned_items: List[IncidentLogging],
         timeline: List[Dict],
+        incident_summary: str,
+        incident_description: str,
+        incident_rca: str,
+        incident_immediate_actions: str,
+        incident_preventive_actions: str,
+
     ):
         self.incident_id = incident_id
         self.title = rca_title
@@ -25,6 +31,11 @@ class IncidentRootCauseAnalysis:
         self.severity_definition = severity_definition
         self.pinned_items = pinned_items
         self.timeline = timeline
+        self.incident_summary = incident_summary
+        self.incident_description = incident_description
+        self.incident_rca = incident_rca
+        self.incident_immediate_actions = incident_immediate_actions
+        self.incident_preventive_actions = incident_preventive_actions
 
         self.parent_page = (
             config.active.integrations.get("atlassian")
@@ -57,6 +68,11 @@ class IncidentRootCauseAnalysis:
             severity_definition=self.severity_definition,
             timeline=self.__generate_timeline(),
             pinned_messages=self.__generate_pinned_messages(),
+            incident_summary = self.incident_summary,
+            incident_description = self.incident_description,
+            incident_rca = self.incident_rca,
+            incident_immediate_actions = self.incident_immediate_actions,
+            incident_preventive_actions = self.incident_preventive_actions,
         )
         # Create rca doc
         if self.exec.page_exists(space=self.space, title=self.parent_page):
@@ -181,6 +197,11 @@ class IncidentRootCauseAnalysis:
         severity_definition: str,
         timeline: str,
         pinned_messages: str,
+        incident_summary: str,
+        incident_description: str,
+        incident_rca: str,
+        incident_immediate_actions: str,
+        incident_preventive_actions: str,
     ) -> str:
         """Renders HTML for use in Confluence documents"""
         variables = {
@@ -191,6 +212,11 @@ class IncidentRootCauseAnalysis:
             "severity_definition": severity_definition,
             "timeline": timeline,
             "pinned_messages": pinned_messages,
+            "incident_summary": incident_summary,
+            "incident_description": incident_description,
+            "incident_rca": incident_rca,
+            "incident_immediate_actions": incident_immediate_actions,
+            "incident_preventive_actions": incident_preventive_actions,
         }
         return RCATemplate.template(
             incident_commander=incident_commander,
@@ -198,6 +224,12 @@ class IncidentRootCauseAnalysis:
             severity_definition=severity_definition,
             timeline=timeline,
             pinned_messages=pinned_messages,
+            incident_summary=incident_summary,
+            incident_description=incident_description,
+            incident_rca=incident_rca,
+            incident_immediate_actions=incident_immediate_actions,
+            incident_preventive_actions=incident_preventive_actions,
+
         )
 
     def __user_mention_format(self, role: str) -> str:

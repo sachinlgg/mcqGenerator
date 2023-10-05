@@ -303,6 +303,23 @@ def create_incident(
                 conference_bridge_message = slack_web_client.chat_postMessage(
                     channel=created_channel_details["id"],
                     text=f":busts_in_silhouette: Please Join the Incident Investigation Conference Here: {incident.conference_bridge}",
+                    # blocks=[
+                    #     {
+                    #         "type": "header",
+                    #         "text": {
+                    #             "type": "plain_text",
+                    #             "text": ":busts_in_silhouette: Join the Incident Investigation Conference Here.",
+                    #         },
+                    #     },
+                    #     {"type": "divider"},
+                    #     {
+                    #         "type": "section",
+                    #         "text": {
+                    #             "type": "mrkdwn",
+                    #             "text": f"{incident.conference_bridge}",
+                    #         },
+                    #     },
+                    # ],
                     blocks=[
                         {
                             "type": "header",
@@ -312,11 +329,26 @@ def create_incident(
                             },
                         },
                         {"type": "divider"},
+                        # {
+                        #     "type": "image",
+                        #     "image_url": "https://i.imgur.com/ptRujGV.png",  # Add your Zoom logo URL here
+                        #     "alt_text": "Zoom Logo",
+                        # },
                         {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": f"{incident.conference_bridge}",
+                                "text": ":firefighter: :arrow_right: :mag:"
+                            },
+                            "accessory": {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Zoom War Room",
+                                },
+                                "url": f"{incident.conference_bridge}",  # Add your Zoom URL here
+                                "style": "primary",
+                                "action_id": "zoom.join_meeting"
                             },
                         },
                     ],

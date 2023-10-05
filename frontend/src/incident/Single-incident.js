@@ -367,7 +367,7 @@ const ViewSingleIncident = () => {
               </Breadcrumbs>
               {incident.is_security_incident && (
                 <Alert severity="error" sx={{ marginBottom: 2 }}>
-                  This incident has been flagged as a security incident.
+                  This incident has been flagged as a critical incident.
                 </Alert>
               )}
               {incident.status === 'resolved' && (

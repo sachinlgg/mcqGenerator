@@ -440,6 +440,15 @@ def handle_static_action(ack, body):
 
 
 """
+Zoom
+"""
+
+@app.action("zoom.join_meeting")
+def handle_static_action(ack, body):
+    logger.debug(body)
+    ack()
+
+"""
 Jira
 """
 

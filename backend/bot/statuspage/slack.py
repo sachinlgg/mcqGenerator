@@ -16,11 +16,11 @@ def return_new_statuspage_incident_message(channel_id: str) -> Dict[str, str]:
         "channel": channel_id,
         "blocks": [
             {"type": "divider"},
-            {
-                "type": "image",
-                "image_url": config.sp_logo_url,
-                "alt_text": "statuspage",
-            },
+            # {
+            #     "type": "image",
+            #     "image_url": config.sp_logo_url,
+            #     "alt_text": "statuspage",
+            # },
             {
                 "type": "section",
                 "text": {
@@ -37,7 +37,7 @@ def return_new_statuspage_incident_message(channel_id: str) -> Dict[str, str]:
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "Start New Incident",
+                            "text": "Start Statuspage Incident",
                             "emoji": True,
                         },
                         "value": channel_id,

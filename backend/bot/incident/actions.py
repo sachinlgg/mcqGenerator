@@ -26,6 +26,8 @@ from bot.slack.client import (
     invite_user_to_channel,
     slack_workspace_id,
 )
+from bot.chatgpt.api import ChatGPTApi
+
 from bot.slack.incident_logging import read as read_incident_pinned_items
 from bot.templates.incident.digest_notification import (
     IncidentChannelDigestNotification,
@@ -290,6 +292,7 @@ async def export_chat_logs(action_parameters: type[ActionParametersSlack]):
         channel_id=incident_data.channel_id,
         channel_name=incident_data.channel_name,
     )
+
     try:
         logger.info(f"Sending chat transcript to {incident_data.channel_name}.")
         result = slack_web_client.files_upload_v2(
@@ -426,6 +429,7 @@ async def set_status(
                 from bot.confluence.rca import IncidentRootCauseAnalysis
 
                 rca_title = " ".join(incident_data.incident_id.split("-")[2:])
+                incident_slack_messages = get_incident_slack_thread(incident_data.channel_id)
                 rca = IncidentRootCauseAnalysis(
                     incident_id=incident_data.incident_id,
                     rca_title=rca_title,
@@ -438,6 +442,11 @@ async def set_status(
                         incident_id=incident_data.incident_id
                     ),
                     timeline=log.read(incident_id=incident_data.incident_id),
+                    incident_summary = generate_incident_summary(incident_data.channel_id,incident_slack_messages),
+                    incident_description = generate_incident_description(incident_data.channel_id,incident_slack_messages),
+                    incident_rca = generate_incident_rca(incident_data.channel_id,incident_slack_messages),
+                    incident_immediate_actions = generate_incident_immediate_actions(incident_data.channel_id,incident_slack_messages),
+                    incident_preventive_actions = generate_incident_preventive_actions(incident_data.channel_id,incident_slack_messages),
                 )
                 rca_link = rca.create()
                 db_update_incident_rca_col(
@@ -799,3 +808,170 @@ def extract_role_owner(message_blocks: Dict[Any, Any], block_id: str) -> str:
     if index == -1:
         raise IndexNotFoundError(f"Could not find index for block_id {block_id}")
     return message_blocks[index]["text"]["text"].split("\n")[1].replace(" ", "")
+
+
+
+def get_incident_slack_thread(channel_id: str):
+    """
+    Fetches and formats the Slack channel history related to an incident.
+
+    Parameters:
+    - channel_id (str): The unique identifier of the Slack channel.
+
+    Returns:
+    - formatted_history (str): The formatted incident-related Slack channel history.
+    """
+    formatted_history = ""
+    try:
+        # Retrieve incident data from the database
+        incident_data = db_read_incident(channel_id=channel_id)
+        logger.info(f"Generating incident summary for {incident_data.channel_name}.")
+
+        # Retrieve and format the channel history
+        channel_id = incident_data.channel_id
+        channel_name = incident_data.channel_name
+        formatted_history = get_formatted_channel_history(channel_id, channel_name)
+
+        # Remove bot-related lines from the history
+        formatted_history = remove_bot_lines(formatted_history)
+    except Exception as error:
+        logger.error(
+            f"Error Generating Incident summary for {channel_id}: {error}"
+        )
+    return formatted_history
+
+def generate_incident_summary(channel_id: str, channel_history: str):
+    """
+    Generate an incident summary based on Slack channel history using ChatGPT.
+
+    Parameters:
+    - channel_id (str): The unique identifier of the Slack channel.
+    - channel_history (str): The history of the Slack channel related to the incident.
+
+    Returns:
+    - incident_summary (str): The generated incident summary.
+    """
+    incident_summary = ""
+
+    try:
+        logger.info(f"Generating incident summary for {channel_id}.")
+        incident_summary = ChatGPTApi().generate_incident_summary(channel_history)
+        logger.info(f"Incident summary generated via GPT: {incident_summary}")
+
+    except Exception as error:
+        logger.error(f"Error generating incident summary for {channel_id}: {error}")
+
+    return incident_summary
+
+def generate_incident_description(channel_id: str, channel_history: str):
+    """
+    Generate an incident description based on Slack channel history using ChatGPT.
+
+    Parameters:
+    - channel_id (str): The unique identifier of the Slack channel.
+    - channel_history (str): The history of the Slack channel related to the incident.
+
+    Returns:
+    - incident_description (str): The generated incident description.
+    """
+    incident_description = ""
+
+    try:
+        logger.info(f"Generating incident description for {channel_id}.")
+        incident_description = ChatGPTApi().generate_incident_description(channel_history)
+        logger.info(f"Incident description generated via GPT: {incident_description}")
+
+    except Exception as error:
+        logger.error(f"Error generating incident description for {channel_id}: {error}")
+
+    return incident_description
+
+def generate_incident_rca(channel_id: str, channel_history: str):
+    """
+    Generate an incident rca based on Slack channel history using ChatGPT.
+
+    Parameters:
+    - channel_id (str): The unique identifier of the Slack channel.
+    - channel_history (str): The history of the Slack channel related to the incident.
+
+    Returns:
+    - incident_rca (str): The generated incident rca.
+    """
+    incident_rca = ""
+
+    try:
+        logger.info(f"Generating incident rca for {channel_id}.")
+        incident_rca = ChatGPTApi().generate_incident_summary(channel_history)
+        logger.info(f"Incident rca generated via GPT: {incident_rca}")
+
+    except Exception as error:
+        logger.error(f"Error generating incident rca for {channel_id}: {error}")
+
+    return incident_rca
+
+def generate_incident_immediate_actions(channel_id: str, channel_history: str):
+    """
+    Generate an incident immediate_actions based on Slack channel history using ChatGPT.
+
+    Parameters:
+    - channel_id (str): The unique identifier of the Slack channel.
+    - channel_history (str): The history of the Slack channel related to the incident.
+
+    Returns:
+    - incident_immediate_actions (str): The generated incident immediate actions.
+    """
+    incident_immediate_actions = ""
+
+    try:
+        logger.info(f"Generating incident immediate actions for {channel_id}.")
+        incident_immediate_actions = ChatGPTApi().generate_immediate_actions(channel_history)
+        logger.info(f"Incident immediate actions generated via GPT: {incident_immediate_actions}")
+
+    except Exception as error:
+        logger.error(f"Error generating incident immediate actions for {channel_id}: {error}")
+
+    return incident_immediate_actions
+
+
+def generate_incident_preventive_actions(channel_id: str, channel_history: str):
+    """
+    Generate an incident preventive_actions based on Slack channel history using ChatGPT.
+
+    Parameters:
+    - channel_id (str): The unique identifier of the Slack channel.
+    - channel_history (str): The history of the Slack channel related to the incident.
+
+    Returns:
+    - incident_preventive_actions (str): The generated incident preventive actions.
+    """
+    incident_preventive_actions = ""
+
+    try:
+        logger.info(f"Generating incident preventive actions for {channel_id}.")
+        incident_preventive_actions = ChatGPTApi().generate_preventive_actions(channel_history)
+        logger.info(f"Incident preventive actions generated via GPT: {incident_preventive_actions}")
+
+    except Exception as error:
+        logger.error(f"Error generating incident preventive actions for {channel_id}: {error}")
+
+    return incident_preventive_actions
+def remove_bot_lines(channel_history):
+    """
+    Remove lines containing 'Octo' from a channel history string.
+
+    Parameters:
+    - channel_history (str): The input string containing channel history.
+
+    Returns:
+    - modified_history (str): The modified channel history with 'Octo' lines removed.
+    """
+    # Split the input string into lines
+    lines = channel_history.split('\n')
+
+    # Filter lines that do not contain 'Octo'
+    filtered_lines = [line for line in lines if 'Octo' not in line]
+
+    # Join the filtered lines to create the modified channel history
+    modified_history = '\n'.join(filtered_lines)
+
+    return modified_history

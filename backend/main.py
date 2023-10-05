@@ -136,6 +136,12 @@ def startup_tasks():
         finally:
             Session.close()
             Session.remove()
+    if "chatgpt" in config.active.integrations:
+        from bot.chatgpt.api import ChatGPTApi
+        if ChatGPTApi().test() is None:
+            logger.fatal("Could not verify ChatGpt Integrations in the project Check CHATGPT_API_KEY")
+            sys.exit(1)
+        logger.info(f"chat gpt integrations found")
 
 
 if __name__ == "__main__":
@@ -157,4 +163,4 @@ if __name__ == "__main__":
     check_bot_user_in_digest_channel()
 
     # Serve Flask app
-    serve(app, host="0.0.0.0", port=3000)
+    serve(app, host="0.0.0.0", port=5001)
