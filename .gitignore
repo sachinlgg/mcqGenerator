@@ -14,3 +14,5 @@ logs/
 
 .DS_Store
 deploy/kustomize/incident-bot/base/db.yaml
+.terraform/
+new_venv/*

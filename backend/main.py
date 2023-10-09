@@ -163,4 +163,4 @@ if __name__ == "__main__":
     check_bot_user_in_digest_channel()
 
     # Serve Flask app
-    serve(app, host="0.0.0.0", port=5001)
+    serve(app, host="0.0.0.0", port=3000)
