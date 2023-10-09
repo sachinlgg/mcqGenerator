@@ -19,7 +19,7 @@ resource "aws_lb_target_group" "api" {
   port        = 3000
 
   health_check {
-    path = "/"
+    path = "/api/v1/health"
   }
 }
 
