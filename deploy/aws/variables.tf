@@ -34,7 +34,7 @@ variable "db_password" {
 
 variable "ecr_image_api" {
   description = "ECR image for API"
-  default     = "798229867165.dkr.ecr.ap-south-1.amazonaws.com/gooctoplus-ecr-repo:v3"
+  default     = "798229867165.dkr.ecr.ap-south-1.amazonaws.com/gooctoplus-ecr-repo:v7"
   // default = "798229867165.dkr.ecr.ap-south-1.amazonaws.com/test:v1"
 }
 
