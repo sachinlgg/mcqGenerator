@@ -13,7 +13,7 @@ You can run the image however you choose. A Docker Compose file is provided for 
 You can get started quickly by using the Helm chart:
 
 ```bash
-helm repo add echoboomer-charts https://charts.echoboomer.net
+helm repo add aman3003-charts https://charts.aman3003.net
 ```
 
 Sensitive data should come from Kubernetes `Secret` objects at a minimum. 
@@ -146,7 +146,7 @@ podDisruptionBudget:
 You can now install the application. As an example:
 
 ```bash
-helm install echoboomer-charts/incident-bot --version 1.4.12 --values incident-bot-values.yaml --namespace incident-bot
+helm install aman3003-charts/incident-bot --version 1.4.12 --values incident-bot-values.yaml --namespace incident-bot
 ```
 
 Everything that needs to be configured has been configured directly in the values file as part of the values file.

@@ -37,7 +37,7 @@ integrations:
       space: ENGINEERIN
       parent: RCAs
   statuspage:
-    url: https://status.echoboomer.net
+    url: https://status.aman3003.net
   zoom:
     auto_create_meeting: false
 links:

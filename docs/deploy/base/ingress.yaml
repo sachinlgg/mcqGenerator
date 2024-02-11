@@ -8,10 +8,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - docs.incidentbot.io
+        - docs.gooctoplus.com
       secretName: incident-bot-docs-tls
   rules:
-    - host: docs.incidentbot.io
+    - host: docs.gooctoplus.com
       http:
         paths:
           - path: /

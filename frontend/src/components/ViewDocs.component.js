@@ -2,7 +2,7 @@ import { Button } from '@mui/material';
 
 import ArticleIcon from '@mui/icons-material/Article';
 
-const docsLink = 'https://docs.incidentbot.io';
+const docsLink = 'https://docs.gooctoplus.com';
 
 export default function ViewDocsButton() {
   return (
