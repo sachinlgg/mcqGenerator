@@ -1,15 +1,15 @@
-# incident-bot
+# gooctoplus-bot
 
-![tests](https://github.com/echoboomer/incident-bot/actions/workflows/tests.yml/badge.svg)
-![version](https://img.shields.io/github/v/release/echoboomer/incident-bot)
+![tests](https://github.com/AMAN3003/incident-bot/actions/workflows/tests.yml/badge.svg)
+![version](https://img.shields.io/github/v/release/AMAN3003/incident-bot)
 
-Incident management framework centered around a ChatOps bot for Slack to allow your teams to easily and effectively identify and manage technical incidents impacting your cloud infrastructure, your products, or your customers' ability to use your applications and services.
+Enhance your incident management capabilities with the innovative Gooctoplus AI Generated Incident Management Tool. Our robust framework is strategically designed around a cutting-edge ChatOps bot for Slack, empowering your teams to seamlessly and efficiently identify and handle technical incidents affecting your cloud infrastructure, products, and customer experience with your applications and services.
 
-[Check out Incident Bot's Documentation](https://docs.incidentbot.io)
+[Check out Gooctoplus Bot's Documentation](https://docs.gooctoplus.com)
 
-Need support or just want to chat with us? Join us on [Discord](https://discord.gg/PzqSQUY88c).
+Need support or just want to chat with us? Join us on [Email](founders@gooctoplus.com).
 
-- [incident-bot](#incident-bot)
+- [gooctoplus-bot](#gooctoplus-bot)
   - [Features at a Glance](#features-at-a-glance)
   - [Quick Start](#quick-start)
     - [Kubernetes](#kubernetes)
@@ -19,11 +19,11 @@ Need support or just want to chat with us? Join us on [Discord](https://discord.
 
 Interacting with the bot is incredibly easy through the use of modals and simplified commands:
 
-<img src="https://github.com/echoboomer/incident-bot/blob/main/assets/incident-bot-demo-1.gif" width="700" height="500" />
+[//]: # (<img src="https://github.com/AMAN3003/incident-bot/blob/main/assets/incident-bot-demo-1.gif" width="700" height="500" />)
 
 Featuring a rich web management UI:
 
-<img src="https://github.com/echoboomer/incident-bot/blob/main/assets/incident-bot-demo-2.gif" width="700" height="500" />
+[//]: # (<img src="https://github.com/AMAN3003/incident-bot/blob/main/assets/incident-bot-demo-2.gif" width="700" height="500" />)
 
 ## Features at a Glance
 
@@ -45,7 +45,7 @@ New features are being added all the time.
 
 ## Quick Start
 
-- [Create a Slack app](https://api.slack.com/apps?new_app=1) for this application. You can name it whatever you'd like, but `incident-bot` seems to make the most sense.
+- [Create a Slack app](https://api.slack.com/apps?new_app=1) for this application. You can name it whatever you'd like, but `gooctoplus-bot` seems to make the most sense.
 - Select `from an app manifest` and copy `manifest.yaml` out of this repository and paste it in to automatically configure the app.
 - You'll need the app token, bot token, and user token for your application and provide those as `SLACK_APP_TOKEN`, `SLACK_BOT_TOKEN`, and `SLACK_USER_TOKEN` - these can be found within the app's configuration page in Slack.
 - You'll need a Postgres instance to connect to.
@@ -55,10 +55,6 @@ New features are being added all the time.
 
 You have the option to download source from the latest release and build your own image as well.
 
-### Kubernetes
-
-- You can use [kustomize](https://github.com/echoboomer/incident-bot/blob/main/deploy/kustomize/incident-bot/overlays/development/kustomization.yaml). More details available [here](https://docs.incidentbot.io/setup/#kustomize).
-- There's optionally a Helm chart - instructions are available [here](https://docs.incidentbot.io/setup/#helm).
 
 ## Testing
 
