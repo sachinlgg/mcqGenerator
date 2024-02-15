@@ -27,7 +27,7 @@
             {"name": "ZOOM_ACCOUNT_ID", "value": "-9Ez02bfTRqOsHrIsgqYuA"},
             {"name": "ZOOM_CLIENT_ID", "value": "T8SeCEQzRxK9g6g_BZ9WQ"},
             {"name": "ZOOM_CLIENT_SECRET", "value": "z4xTMQilgkgYo06f7V97b891lm4KeozF"},
-            {"name": "CHATGPT_API_KEY", "value": "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"}
+            {"name": "CHATGPT_API_KEY", "value": "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"}
         ],
         "logConfiguration": {
             "logDriver": "awslogs",

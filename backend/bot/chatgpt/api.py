@@ -16,7 +16,7 @@ class ChatGPTApi:
         try:
             # You can perform a simple test here, like generating a response.
             response = self.api.Completion.create(
-                engine="text-davinci-002",
+                engine="gpt-3.5-turbo-instruct",
                 prompt="Hello, ChatGPT!",
                 max_tokens=10,
             )
@@ -48,7 +48,7 @@ class ChatGPTApi:
 
         try:
             response = self.api.Completion.create(
-                engine="text-davinci-002",  # You can try other engines
+                engine="gpt-3.5-turbo-instruct",  # You can try other engines
                 prompt=prompt,
                 max_tokens=250,  # Adjust this based on the desired summary length
                 temperature=0.7,  # Adjust temperature for creativity (0.2 for focused, 1.0 for diverse)
@@ -82,7 +82,7 @@ class ChatGPTApi:
 
         try:
             response = self.api.Completion.create(
-                engine="text-davinci-002",
+                engine="gpt-3.5-turbo-instruct",
                 prompt=prompt,
                 max_tokens=500,  # Adjust the max_tokens as needed for the desired description length
                 temperature=0.7,
@@ -118,7 +118,7 @@ class ChatGPTApi:
 
         try:
             response = self.api.Completion.create(
-                engine="text-davinci-002",
+                engine="gpt-3.5-turbo-instruct",
                 prompt=prompt,
                 max_tokens=400,  # Adjust the max_tokens as needed for the desired RCA length
                 temperature=0.7,
@@ -152,7 +152,7 @@ class ChatGPTApi:
 
         try:
             response = self.api.Completion.create(
-                engine="text-davinci-002",
+                engine="gpt-3.5-turbo-instruct",
                 prompt=prompt,
                 max_tokens=150,  # Adjust the max_tokens as needed for the desired RCA length
                 temperature=0.7,
@@ -186,7 +186,7 @@ class ChatGPTApi:
 
         try:
             response = self.api.Completion.create(
-                engine="text-davinci-002",
+                engine="gpt-3.5-turbo-instruct",
                 prompt=prompt,
                 max_tokens=200,  # Adjust the max_tokens as needed for the desired RCA length
                 temperature=0.7,
