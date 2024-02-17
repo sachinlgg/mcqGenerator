@@ -57,3 +57,12 @@ variable "teams" {
     # Add more teams as needed
   }
 }
+
+variable "service_team_mapping" {
+  type = map(string)
+  default = {
+    "payment service"    = "Engineering",
+    "devops Service"     = "SRE",
+    "Database Service"   = "SRE"
+  }
+}
