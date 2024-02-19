@@ -29,12 +29,49 @@ class PagerDutyAPI:
             logger.error(f"Error during validation of PagerDuty auth: {error}")
 
 
+
 session = PagerDutyAPI().session()
 
 """
 PagerDuty
 """
 
+
+def find_services():
+    try:
+        services = session.iter_all("services", {"status": "active"})
+
+        service_map = {}
+
+        for service in services:
+            service_id = service['id']
+            service_name = service['name']
+
+            # Extract team information
+            teams = service.get('teams', [{}])
+            if not teams:
+                continue  # Skip this service if no team is attached
+            team = teams[0]
+            team_name = team.get('summary', 'Unknown Team')
+
+            # Extract escalation policy information
+            escalation_policy = service.get('escalation_policy', {})
+            if not escalation_policy:
+                continue
+            escalation_policy_name = escalation_policy.get('summary', 'No Escalation Policy')
+            escalation_policy_id = escalation_policy.get('id', 'XXXXX')
+
+            # Create a map with service_id as the key
+            service_map[service_name] = {
+                'escalation_policy_id': escalation_policy_id,
+                'service_id': service_id,
+                'team_name': team_name,
+                'escalation_policy_name': escalation_policy_name
+            }
+        return service_map
+
+    except Exception as error:
+        logger.error(f"Error during fetching PagerDuty services: {error}")
 
 def find_escalation_policy_id(ep_name: str) -> str:
     """

@@ -1,6 +1,8 @@
 import config
 import logging
 import variables
+import random
+
 
 from bot.audit.log import read as read_logs, write as write_log
 from bot.exc import ConfigurationError
@@ -561,6 +563,32 @@ def open_modal(ack, body, client):
         blocks = [
             {
                 "type": "section",
+                "block_id": "incident_bot_pager_service_select",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Choose a Service to page:",
+                },
+                "accessory": {
+                    "action_id": "update_incident_bot_pager_selected_service",
+                    "type": "static_select",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Service...",
+                    },
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": ep,
+                            },
+                            "value": ep,
+                        }
+                        for ep in pd_api.find_services()
+                    ],
+                },
+            },
+            {
+                "type": "section",
                 "block_id": "incident_bot_pager_team_select",
                 "text": {
                     "type": "mrkdwn",
@@ -755,6 +783,82 @@ def handle_static_action(ack, body, logger):
     ack()
     logger.debug(body)
 
+
+@app.action("update_incident_bot_pager_selected_service")
+def handle_static_action(ack, body, logger,client):
+    ack()
+    from bot.pagerduty import api as pd_api
+    update_view = body["view"]["blocks"]
+    selected_service_name = body["actions"][0]["selected_option"]["value"]
+    service_esp = pd_api.find_services().get(selected_service_name, {}).get("escalation_policy_name", "No Escalation Policy")
+    # default_escalation_policy = pd_api.find_who_is_on_call().get(service_esp,{})
+    random_number = random.randint(1, 100)
+    block_id = f"incident_bot_pager_team_select_{random_number}"
+    # handling update in state issue https://github.com/slackapi/bolt-js/issues/1073#issuecomment-903599111
+    update_block = {
+            "type": "section",
+            "block_id": block_id,
+            "text": {
+                "type": "mrkdwn",
+                "text": "Choose a team to page:",
+            },
+            "accessory": {
+                "action_id": "update_incident_bot_pager_selected_team",
+                "type": "static_select",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "Team...",
+                    "emoji": True
+                },
+                "options": [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": ep,
+                        },
+                        "value": ep,
+                    }
+                    for ep in pd_api.find_who_is_on_call()
+                ],
+                "initial_option": {
+                    "text": {
+                        "type": "plain_text",
+                        "text": service_esp,
+                        "emoji": True,
+                    },
+                    "value": service_esp,
+                },
+            },
+        }
+    # update_team_state = {
+    #     'update_incident_bot_pager_team_service': {
+    #         'type': 'static_select',
+    #         'selected_option': {
+    #             'text': {
+    #                 'type': 'plain_text',
+    #                 'text': service_esp,
+    #                 'emoji': True
+    #             },
+    #             'value': service_esp
+    #         }
+    #     }
+    # }
+    # body["view"]["state"]["values"]['incident_bot_pager_team_select'] =update_team_state
+    update_view[1] = update_block
+    client.views_update(
+        # Pass the view_id
+        view_id=body["view"]["id"],
+        trigger_id=body["trigger_id"],
+        # String that represents view state to protect against race conditions
+        hash=body["view"]["hash"],
+        view = {
+            "type" : body["view"]["type"],
+            "title" : body["view"]["title"],
+            "callback_id" : body["view"]["callback_id"],
+            "blocks" : body["view"]["blocks"],
+        }
+    )
+    logger.debug(body)
 
 @app.action("update_incident_bot_pager_selected_priority")
 def handle_static_action(ack, body, logger):
