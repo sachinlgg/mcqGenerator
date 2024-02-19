@@ -80,12 +80,12 @@ resource "pagerduty_escalation_policy" "sre_escalation_policy" {
   teams     = [can(pagerduty_team.teams["sre_team"]) ? pagerduty_team.teams["sre_team"].id : null]
 
   dynamic "rule" {
-    for_each = pagerduty_user.sre_team_users
+    for_each = pagerduty_schedule.sre_schedule
 
     content {
       escalation_delay_in_minutes = 10
       target {
-        type = "user_reference"
+        type = "schedule_reference"
         id   = rule.value.id
       }
     }
@@ -100,12 +100,12 @@ resource "pagerduty_escalation_policy" "engineering_escalation_policy" {
   teams     = [can(pagerduty_team.teams["engineering_team"]) ? pagerduty_team.teams["engineering_team"].id : null]
 
   dynamic "rule" {
-    for_each = pagerduty_user.engineering_team_users
+    for_each = pagerduty_schedule.engineering_schedule
 
     content {
       escalation_delay_in_minutes = 10
       target {
-        type = "user_reference"
+        type = "schedule_reference"
         id   = rule.value.id
       }
     }
@@ -154,4 +154,28 @@ resource "pagerduty_schedule" "engineering_schedule" {
   }
 
   teams = can(pagerduty_team.teams["engineering_team"]) ? [pagerduty_team.teams["engineering_team"].id] : []
+}
+
+# Create PagerDuty services based on the configuration map
+locals {
+  escalation_policies = {
+    "SRE"        = can(pagerduty_team.teams["sre_team"]) ? pagerduty_escalation_policy.sre_escalation_policy[0].id : null
+    "Engineering" = can(pagerduty_team.teams["engineering_team"]) ? pagerduty_escalation_policy.engineering_escalation_policy[0].id : null
+    # Add more teams as needed
+  }
+}
+
+resource "pagerduty_service" "services" {
+  for_each = var.service_team_mapping
+
+  name        = each.key
+  description = "Service for ${each.key}"
+  auto_resolve_timeout    = 14400
+  acknowledgement_timeout = 600
+  alert_creation          = "create_alerts_and_incidents"
+  auto_pause_notifications_parameters {
+    enabled = true
+    timeout = 300
+  }
+  escalation_policy = local.escalation_policies[each.value]
 }

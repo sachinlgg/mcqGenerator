@@ -112,9 +112,12 @@ def startup_tasks():
 
     if "pagerduty" in config.active.integrations:
         from bot.pagerduty.api import PagerDutyAPI
-
-        if PagerDutyAPI().test() is None:
+        result = PagerDutyAPI().test()
+        if result is None:
+            logger.error(f"PagerDuty API test failed. Exiting...")
             sys.exit(1)
+        else:
+            logger.info(f"PagerDuty API Integration Result {result}")
 
         from bot.scheduler.scheduler import update_pagerduty_oc_data
 
