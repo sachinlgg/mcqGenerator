@@ -42,7 +42,7 @@ channel_name_prefix_length = len("inc-20211116-")
 incident_description_max_length = channel_name_length_cap - channel_name_prefix_length
 
 # Temoporary Zoom Meeting Logo uri for bookmark
-zoom_logo_uri = "https://assets-global.website-files.com/5ee732bebd9839b494ff27cd/5eefe1691c86f247d55e8a8b_Zoom-App-Icon-2.png"
+zoom_logo_uri = "https://i.imgur.com/xtTZlCF.png"
 
 if not config.is_test_environment:
     from bot.slack.client import invite_user_to_channel
