@@ -242,6 +242,7 @@ def create_incident(
         if len(incident_description) < incident_description_max_length:
             incident = Incident(request_parameters)
             created_channel_details = incident.created_channel_details
+            created_channel_details['user'] = user
             """
             Notify incidents digest channel
             """
