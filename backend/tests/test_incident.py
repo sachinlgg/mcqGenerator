@@ -195,7 +195,7 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":speaking_head_in_silhouette: *Reporter*: mock",
+                        "text": ":speaking_head_in_silhouette: *Reporter*: <@mock>",
                     },
                 },
                 {
@@ -203,7 +203,7 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":slack: *Channel*: mock",
+                        "text": ":slack: *Channel*: #mock",
                     },
                 },
                 {
