@@ -161,6 +161,7 @@ class TestIncidentManagement:
                 "id": "CBR2V3XEX",
                 "name": "mock",
                 "is_security_incident": False,
+                "user": "mock"
             },
             conference_bridge="mock",
             severity="sev4",
