@@ -180,14 +180,27 @@ def open_modal(ack, body, client):
     """
     base_blocks = [
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "This initiates a new incident channel, where you'll be invited. "
-                + "Utilize our incident management process, collaborate, "
-                + "and leverage the bot for issue identification, "
-                + "postmortem report automation, and RCA analysis.",
+            "type": "input",
+            "block_id": "open_incident_modal_desc",
+            "optional": True,
+            "element": {
+                "type": "plain_text_input",
+                "action_id": "open_incident_modal_set_description",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "A brief description of the Incident.",
+                },
             },
+            "label": {"type": "plain_text", "text": "What's going on? "},
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "Compose a brief,punchy description of the current situation. Feel free to keep it blank and modify it at a later time.."
+                }
+            ]
         },
         {
             "type": "section",
@@ -229,58 +242,6 @@ def open_modal(ack, body, client):
             },
         },
         {
-            "type": "section",
-            "block_id": "private_channel",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*Make Slack channel private?*",
-            },
-            "accessory": {
-                "action_id": "open_incident_modal_set_private",
-                "type": "static_select",
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": "Select...",
-                },
-                "initial_option": {
-                    "text": {
-                        "type": "plain_text",
-                        "text": "No",
-                    },
-                    "value": "false",
-                },
-                "options": [
-                    {
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Yes",
-                        },
-                        "value": "true",
-                    },
-                    {
-                        "text": {
-                            "type": "plain_text",
-                            "text": "No",
-                        },
-                        "value": "false",
-                    },
-                ],
-            },
-        },
-        {
-            "type": "input",
-            "block_id": "open_incident_modal_desc",
-            "element": {
-                "type": "plain_text_input",
-                "action_id": "open_incident_modal_set_description",
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": "A brief description of the Incident.",
-                },
-            },
-            "label": {"type": "plain_text", "text": "Description"},
-        },
-        {
             "block_id": "severity",
             "type": "section",
             "text": {"type": "mrkdwn", "text": "*Severity*"},
@@ -312,6 +273,65 @@ def open_modal(ack, body, client):
                 ],
             },
         },
+        {
+            "type": "context",
+            "block_id": "severity_context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": get_severity_context()
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "block_id": "private_channel",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Who should be able to see this incident ?*",
+            },
+            "accessory": {
+                "action_id": "open_incident_modal_set_private",
+                "type": "static_select",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "Select...",
+                },
+                "initial_option": {
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Everyone",
+                    },
+                    "value": "false",
+                },
+                "options": [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Private",
+                        },
+                        "value": "true",
+                    },
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Everyone",
+                        },
+                        "value": "false",
+                    },
+                ],
+            },
+        },
+        {
+            "type": "context",
+            "block_id": "private_channel_context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "*Everyone:* All members in the Slack workspace will have access to this incident.\n *Private:* Only invited members in the channel will have access."
+                }
+            ]
+        }
     ]
 
     """
@@ -1888,3 +1908,16 @@ def handle_submission(ack, body, client, view):
             logger.error(f"Error sending Jira issue message for {incident_id}: {error}")
     except Exception as error:
         logger.error(error)
+
+def get_severity_context():
+    text_lines = []
+    for sev, _ in config.active.severities.items():
+        if sev.upper() == "SEV1":
+            text_lines.append(f"*SEV1:* This incident is critical and requires immediate attention.")
+        elif sev.upper() == "SEV2":
+            text_lines.append(f"*SEV2:* This incident is urgent and should be addressed promptly.")
+        elif sev.upper() == "SEV3":
+            text_lines.append(f"*SEV3:* This incident has a moderate impact and should be resolved soon.")
+        elif sev.upper() == "SEV4":
+            text_lines.append(f"*SEV4:* This incident has a low impact and can be resolved at a convenient time.")
+    return "\n".join(text_lines)
