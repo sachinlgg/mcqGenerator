@@ -305,7 +305,7 @@ def create_incident(
             """
             slack_web_client.bookmarks_add(
                 channel_id=created_channel_details['id'],
-                title="Zoom Link",
+                title="Zoom War Room",
                 type='link',
                 link=incident.conference_bridge,
                 icon_uri=zoom_logo_uri,
