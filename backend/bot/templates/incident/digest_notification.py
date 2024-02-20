@@ -83,19 +83,6 @@ class IncidentChannelDigestNotification:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Join Incident Channel",
-                            },
-                            "style": "primary",
-                            "url": "https://{}.slack.com/archives/{}".format(
-                                slack_workspace_id,
-                                incident_channel_details.get("name"),
-                            ),
-                            "action_id": "incident.join_incident_channel",
-                        },
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
                                 "text": "Conference",
                             },
                             "url": conference_bridge,
