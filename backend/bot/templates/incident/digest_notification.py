@@ -12,9 +12,17 @@ class IncidentChannelDigestNotification:
         severity: str,
     ):
         if incident_channel_details.get("is_security_incident"):
-            header = ":fire::lock::fire_engine: New Critical Incident"
+            header = ":warning::lock::fire_engine: {}".format(
+                incident_channel_details.get(
+                    "incident_description"
+                )
+            )
         else:
-            header = ":fire::fire_engine: New Incident"
+            header = ":warning::fire_engine: {}".format(
+                incident_channel_details.get(
+                    "incident_description"
+                )
+            )
         return {
             "channel": f"{config.active.digest_channel}",
             "blocks": [
@@ -26,15 +34,11 @@ class IncidentChannelDigestNotification:
                     },
                 },
                 {
-                    "block_id": "digest_channel_title",
+                    "block_id": "digest_channel_severity",
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":mag_right: Description:\n *{}*".format(
-                            incident_channel_details.get(
-                                "incident_description"
-                            )
-                        ),
+                        "text": f":fire: *Severity*: {severity.upper()}",
                     },
                 },
                 {
@@ -42,15 +46,25 @@ class IncidentChannelDigestNotification:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":grey_question: Current Status:\n *Investigating*",
+                        "text": ":hourglass_flowing_sand: *Status*: Investigating",
                     },
                 },
                 {
-                    "block_id": "digest_channel_severity",
+                    "block_id": "digest_channel_reporter",
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f":grey_exclamation: Severity:\n *{severity.upper()}*",
+                        "text": ":speaking_head_in_silhouette: *Reporter*: <@{}>".format(
+                            incident_channel_details.get('user')
+                        ),
+                    },
+                },
+                {
+                    "block_id": "join_incident_channel",
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":slack: *Channel*: #{}".format(incident_channel_details.get("name"))
                     },
                 },
                 {
@@ -65,19 +79,6 @@ class IncidentChannelDigestNotification:
                     "type": "actions",
                     "block_id": "incchannelbuttons",
                     "elements": [
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Join Incident Channel",
-                            },
-                            "style": "primary",
-                            "url": "https://{}.slack.com/archives/{}".format(
-                                slack_workspace_id,
-                                incident_channel_details.get("name"),
-                            ),
-                            "action_id": "incident.join_incident_channel",
-                        },
                         {
                             "type": "button",
                             "text": {

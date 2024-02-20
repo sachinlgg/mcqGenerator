@@ -161,6 +161,7 @@ class TestIncidentManagement:
                 "id": "CBR2V3XEX",
                 "name": "mock",
                 "is_security_incident": False,
+                "user": "mock"
             },
             conference_bridge="mock",
             severity="sev4",
@@ -171,23 +172,7 @@ class TestIncidentManagement:
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": ":fire::fire_engine: New Incident",
-                    },
-                },
-                {
-                    "block_id": "digest_channel_title",
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":mag_right: Description:\n *mock*",
-                    },
-                },
-                {
-                    "block_id": "digest_channel_status",
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":grey_question: Current Status:\n *Investigating*",
+                        "text": ":warning::fire_engine: mock",
                     },
                 },
                 {
@@ -195,7 +180,31 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":grey_exclamation: Severity:\n *SEV4*",
+                        "text": ":fire: *Severity*: SEV4",
+                    },
+                },
+                {
+                    "block_id": "digest_channel_status",
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":hourglass_flowing_sand: *Status*: Investigating",
+                    },
+                },
+                {
+                    "block_id": "digest_channel_reporter",
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":speaking_head_in_silhouette: *Reporter*: <@mock>",
+                    },
+                },
+                {
+                    "block_id": "join_incident_channel",
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":slack: *Channel*: #mock",
                     },
                 },
                 {
@@ -209,16 +218,6 @@ class TestIncidentManagement:
                     "type": "actions",
                     "block_id": "incchannelbuttons",
                     "elements": [
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Join Incident Channel",
-                            },
-                            "style": "primary",
-                            "url": "https://test.slack.com/archives/mock",
-                            "action_id": "incident.join_incident_channel",
-                        },
                         {
                             "type": "button",
                             "text": {
