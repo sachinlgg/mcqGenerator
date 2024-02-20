@@ -1,6 +1,8 @@
 import config
 import logging
 import variables
+import random
+
 
 from bot.audit.log import read as read_logs, write as write_log
 from bot.exc import ConfigurationError
@@ -178,14 +180,27 @@ def open_modal(ack, body, client):
     """
     base_blocks = [
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "This initiates a new incident channel, where you'll be invited. "
-                + "Utilize our incident management process, collaborate, "
-                + "and leverage the bot for issue identification, "
-                + "postmortem report automation, and RCA analysis.",
+            "type": "input",
+            "block_id": "open_incident_modal_desc",
+            "optional": True,
+            "element": {
+                "type": "plain_text_input",
+                "action_id": "open_incident_modal_set_description",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "A brief description of the Incident.",
+                },
             },
+            "label": {"type": "plain_text", "text": "What's going on? "},
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "Compose a brief,punchy description of the current situation. Feel free to keep it blank and modify it at a later time.."
+                }
+            ]
         },
         {
             "type": "section",
@@ -227,58 +242,6 @@ def open_modal(ack, body, client):
             },
         },
         {
-            "type": "section",
-            "block_id": "private_channel",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*Make Slack channel private?*",
-            },
-            "accessory": {
-                "action_id": "open_incident_modal_set_private",
-                "type": "static_select",
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": "Select...",
-                },
-                "initial_option": {
-                    "text": {
-                        "type": "plain_text",
-                        "text": "No",
-                    },
-                    "value": "false",
-                },
-                "options": [
-                    {
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Yes",
-                        },
-                        "value": "true",
-                    },
-                    {
-                        "text": {
-                            "type": "plain_text",
-                            "text": "No",
-                        },
-                        "value": "false",
-                    },
-                ],
-            },
-        },
-        {
-            "type": "input",
-            "block_id": "open_incident_modal_desc",
-            "element": {
-                "type": "plain_text_input",
-                "action_id": "open_incident_modal_set_description",
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": "A brief description of the Incident.",
-                },
-            },
-            "label": {"type": "plain_text", "text": "Description"},
-        },
-        {
             "block_id": "severity",
             "type": "section",
             "text": {"type": "mrkdwn", "text": "*Severity*"},
@@ -310,6 +273,65 @@ def open_modal(ack, body, client):
                 ],
             },
         },
+        {
+            "type": "context",
+            "block_id": "severity_context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": get_severity_context()
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "block_id": "private_channel",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Who should be able to see this incident ?*",
+            },
+            "accessory": {
+                "action_id": "open_incident_modal_set_private",
+                "type": "static_select",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "Select...",
+                },
+                "initial_option": {
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Everyone",
+                    },
+                    "value": "false",
+                },
+                "options": [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Private",
+                        },
+                        "value": "true",
+                    },
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Everyone",
+                        },
+                        "value": "false",
+                    },
+                ],
+            },
+        },
+        {
+            "type": "context",
+            "block_id": "private_channel_context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "*Everyone:* All members in the Slack workspace will have access to this incident.\n *Private:* Only invited members in the channel will have access."
+                }
+            ]
+        }
     ]
 
     """
@@ -561,6 +583,32 @@ def open_modal(ack, body, client):
         blocks = [
             {
                 "type": "section",
+                "block_id": "incident_bot_pager_service_select",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Choose a Service to page:",
+                },
+                "accessory": {
+                    "action_id": "update_incident_bot_pager_selected_service",
+                    "type": "static_select",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Service...",
+                    },
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": ep,
+                            },
+                            "value": ep,
+                        }
+                        for ep in pd_api.find_services()
+                    ],
+                },
+            },
+            {
+                "type": "section",
                 "block_id": "incident_bot_pager_team_select",
                 "text": {
                     "type": "mrkdwn",
@@ -755,6 +803,82 @@ def handle_static_action(ack, body, logger):
     ack()
     logger.debug(body)
 
+
+@app.action("update_incident_bot_pager_selected_service")
+def handle_static_action(ack, body, logger,client):
+    ack()
+    from bot.pagerduty import api as pd_api
+    update_view = body["view"]["blocks"]
+    selected_service_name = body["actions"][0]["selected_option"]["value"]
+    service_esp = pd_api.find_services().get(selected_service_name, {}).get("escalation_policy_name", "No Escalation Policy")
+    # default_escalation_policy = pd_api.find_who_is_on_call().get(service_esp,{})
+    random_number = random.randint(1, 100)
+    block_id = f"incident_bot_pager_team_select_{random_number}"
+    # handling update in state issue https://github.com/slackapi/bolt-js/issues/1073#issuecomment-903599111
+    update_block = {
+            "type": "section",
+            "block_id": block_id,
+            "text": {
+                "type": "mrkdwn",
+                "text": "Choose a team to page:",
+            },
+            "accessory": {
+                "action_id": "update_incident_bot_pager_selected_team",
+                "type": "static_select",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "Team...",
+                    "emoji": True
+                },
+                "options": [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": ep,
+                        },
+                        "value": ep,
+                    }
+                    for ep in pd_api.find_who_is_on_call()
+                ],
+                "initial_option": {
+                    "text": {
+                        "type": "plain_text",
+                        "text": service_esp,
+                        "emoji": True,
+                    },
+                    "value": service_esp,
+                },
+            },
+        }
+    # update_team_state = {
+    #     'update_incident_bot_pager_team_service': {
+    #         'type': 'static_select',
+    #         'selected_option': {
+    #             'text': {
+    #                 'type': 'plain_text',
+    #                 'text': service_esp,
+    #                 'emoji': True
+    #             },
+    #             'value': service_esp
+    #         }
+    #     }
+    # }
+    # body["view"]["state"]["values"]['incident_bot_pager_team_select'] =update_team_state
+    update_view[1] = update_block
+    client.views_update(
+        # Pass the view_id
+        view_id=body["view"]["id"],
+        trigger_id=body["trigger_id"],
+        # String that represents view state to protect against race conditions
+        hash=body["view"]["hash"],
+        view = {
+            "type" : body["view"]["type"],
+            "title" : body["view"]["title"],
+            "callback_id" : body["view"]["callback_id"],
+            "blocks" : body["view"]["blocks"],
+        }
+    )
+    logger.debug(body)
 
 @app.action("update_incident_bot_pager_selected_priority")
 def handle_static_action(ack, body, logger):
@@ -1784,3 +1908,16 @@ def handle_submission(ack, body, client, view):
             logger.error(f"Error sending Jira issue message for {incident_id}: {error}")
     except Exception as error:
         logger.error(error)
+
+def get_severity_context():
+    text_lines = []
+    for sev, _ in config.active.severities.items():
+        if sev.upper() == "SEV1":
+            text_lines.append(f"*SEV1:* This incident is critical and requires immediate attention.")
+        elif sev.upper() == "SEV2":
+            text_lines.append(f"*SEV2:* This incident is urgent and should be addressed promptly.")
+        elif sev.upper() == "SEV3":
+            text_lines.append(f"*SEV3:* This incident has a moderate impact and should be resolved soon.")
+        elif sev.upper() == "SEV4":
+            text_lines.append(f"*SEV4:* This incident has a low impact and can be resolved at a convenient time.")
+    return "\n".join(text_lines)
