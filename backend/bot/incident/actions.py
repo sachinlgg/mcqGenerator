@@ -329,7 +329,7 @@ async def set_status(
     action_parameters(type[ActionParametersSlack]) containing Slack actions data
     """
     incident_data = db_read_incident(channel_id=action_parameters.channel_details["id"])
-
+    channel_name = incident_data.channel_name
     action_value = action_parameters.actions["selected_option"]["value"]
     user = action_parameters.user_details["id"]
 
@@ -584,6 +584,8 @@ async def set_status(
                 status=action_value,
                 severity=incident_data.severity,
                 conference_bridge=incident_data.conference_bridge,
+                channel_name = channel_name,
+                user = user
             ),
             text="",
         )
@@ -710,6 +712,8 @@ async def set_severity(
     """
     incident_data = db_read_incident(channel_id=action_parameters.channel_details["id"])
     action_value = action_parameters.actions["selected_option"]["value"]
+    channel_name = incident_data.channel_name
+    user = action_parameters.user_details["id"]
 
     # Also updates digest message
     try:
@@ -723,6 +727,8 @@ async def set_severity(
                 status=incident_data.status,
                 severity=action_value,
                 conference_bridge=incident_data.conference_bridge,
+                channel_name = channel_name,
+                user = user,
             ),
         )
     except slack_sdk.errors.SlackApiError as error:
