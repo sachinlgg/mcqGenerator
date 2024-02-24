@@ -301,6 +301,16 @@ def create_incident(
                 timestamp=bp_message["ts"],
             )
             """
+            Set Incident Guide as bookmark in the channel upon creation
+            """
+            slack_web_client.bookmarks_add(
+                channel_id=created_channel_details['id'],
+                title="Incident Guide",
+                type='link',
+                link=config.active.links.get('incident_guide'),
+                emoji=":book:"
+            )
+            """
             Set conference link as bookmark in the channel upon creation
             """
             slack_web_client.bookmarks_add(
