@@ -332,6 +332,7 @@ async def set_status(
     channel_name = incident_data.channel_name
     action_value = action_parameters.actions["selected_option"]["value"]
     user = action_parameters.user_details["id"]
+    reporter = incident_data.roles['incident_reporter'] if incident_data.roles and 'incident_reporter' in incident_data.roles else user
 
     # Write audit log
     log.write(
@@ -585,7 +586,7 @@ async def set_status(
                 severity=incident_data.severity,
                 conference_bridge=incident_data.conference_bridge,
                 channel_name = channel_name,
-                user = user
+                user = reporter
             ),
             text="",
         )
@@ -714,6 +715,7 @@ async def set_severity(
     action_value = action_parameters.actions["selected_option"]["value"]
     channel_name = incident_data.channel_name
     user = action_parameters.user_details["id"]
+    reporter = incident_data.roles['incident_reporter'] if incident_data.roles and 'incident_reporter' in incident_data.roles else user
 
     # Also updates digest message
     try:
@@ -728,7 +730,7 @@ async def set_severity(
                 severity=action_value,
                 conference_bridge=incident_data.conference_bridge,
                 channel_name = channel_name,
-                user = user,
+                user = reporter,
             ),
         )
     except slack_sdk.errors.SlackApiError as error:

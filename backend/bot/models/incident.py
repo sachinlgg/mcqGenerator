@@ -457,6 +457,7 @@ def db_write_incident(
     is_security_incident,
     channel_description,
     conference_bridge,
+    roles,    
 ):
     """
     Write incident entry to database
@@ -485,6 +486,7 @@ def db_write_incident(
             is_security_incident=is_security_incident,
             channel_description=channel_description,
             conference_bridge=conference_bridge,
+            roles = roles
         )
         Session.add(incident)
         Session.commit()

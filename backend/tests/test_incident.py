@@ -222,7 +222,7 @@ class TestIncidentManagement:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Conference",
+                                "text": "War Room",
                             },
                             "url": "mock",
                             "action_id": "incident.click_conference_bridge_link",
@@ -603,23 +603,7 @@ class TestIncidentManagement:
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": ":fire::fire_engine: Ongoing Incident",
-                },
-            },
-            {
-                "block_id": "digest_channel_title",
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": ":mag_right: Description:\n *mock*",
-                },
-            },
-            {
-                "block_id": "digest_channel_status",
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": ":grey_question: Current Status:\n *Identified*",
+                    "text": ":warning::fire_engine: mock",
                 },
             },
             {
@@ -627,7 +611,31 @@ class TestIncidentManagement:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": ":grey_exclamation: Severity:\n *SEV4*",
+                    "text": ":fire: *Severity*: SEV4",
+                },
+            },
+            {
+                "block_id": "digest_channel_status",
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f":bulb: *Status*: Identified",
+                },
+            },
+            {
+                "block_id": "digest_channel_reporter",
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":speaking_head_in_silhouette: *Reporter*: <@U05T9BLKJ07>",
+                },
+            },
+            {
+                "block_id": "join_incident_channel",
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":slack: *Channel*: #default_channel_name"
                 },
             },
             {
@@ -643,17 +651,7 @@ class TestIncidentManagement:
                 "elements": [
                     {
                         "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Join Incident Channel",
-                        },
-                        "style": "primary",
-                        "url": "https://test.slack.com/archives/mock",
-                        "action_id": "incident.join_incident_channel",
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "Conference"},
+                        "text": {"type": "plain_text", "text": "War Room"},
                         "url": "mock",
                         "action_id": "incident.click_conference_bridge_link",
                     },
