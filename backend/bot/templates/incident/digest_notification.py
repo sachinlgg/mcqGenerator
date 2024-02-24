@@ -83,7 +83,7 @@ class IncidentChannelDigestNotification:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Conference",
+                                "text": "War Room",
                             },
                             "url": conference_bridge,
                             "action_id": "incident.click_conference_bridge_link",
@@ -121,20 +121,30 @@ class IncidentChannelDigestNotification:
         status: str,
         severity: str,
         conference_bridge: str,
+        channel_name: str = 'default_channel_name',
+        user: str = 'U05T9BLKJ07',
     ):
         incident_reacji_header = (
-            ":fire::lock::fire_engine:"
+            ":warning::lock::fire_engine: {}".format(incident_description)
             if is_security_incident
-            else ":fire::fire_engine:"
+            else ":warning::fire_engine: {}".format(incident_description)
         )
         incident_type = (
             "Critical Incident" if is_security_incident else "Incident"
         )
+        emoji_mapping = {
+            "Investigating": ":hourglass_flowing_sand:",
+            "Identified": ":bulb:",
+            "Monitoring": ":construction:",
+            "Resolved": ":white_check_mark:",
+        }
+        emoji = emoji_mapping.get(status.title(), ":hourglass_flowing_sand:")
+
         if status == "resolved":
-            header = f":white_check_mark: Resolved {incident_type} :white_check_mark:"
+            header = f":white_check_mark: Resolved {incident_description} :white_check_mark:"
             message = "This incident has been resolved."
         else:
-            header = f"{incident_reacji_header} Ongoing {incident_type}"
+            header = f"{incident_reacji_header}"
             message = "This incident is in progress. Current status is listed here. Join the channel for more information."
         return [
             {
@@ -145,11 +155,11 @@ class IncidentChannelDigestNotification:
                 },
             },
             {
-                "block_id": "digest_channel_title",
+                "block_id": "digest_channel_severity",
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f":mag_right: Description:\n *{incident_description}*",
+                    "text": f":fire: *Severity*: {severity.upper()}",
                 },
             },
             {
@@ -157,15 +167,23 @@ class IncidentChannelDigestNotification:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f":grey_question: Current Status:\n *{status.title()}*",
+                    "text": f"{emoji} *Status*: {status.title()}",
                 },
             },
             {
-                "block_id": "digest_channel_severity",
+                "block_id": "digest_channel_reporter",
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f":grey_exclamation: Severity:\n *{severity.upper()}*",
+                    "text": ":speaking_head_in_silhouette: *Reporter*: <@{}>".format(user),
+                },
+            },
+            {
+                "block_id": "join_incident_channel",
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":slack: *Channel*: #{}".format(channel_name)
                 },
             },
             {
@@ -183,17 +201,7 @@ class IncidentChannelDigestNotification:
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "Join Incident Channel",
-                        },
-                        "style": "primary",
-                        "url": f"https://{slack_workspace_id}.slack.com/archives/{incident_id}",
-                        "action_id": "incident.join_incident_channel",
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Conference",
+                            "text": "War Room",
                         },
                         "url": conference_bridge,
                         "action_id": "incident.click_conference_bridge_link",

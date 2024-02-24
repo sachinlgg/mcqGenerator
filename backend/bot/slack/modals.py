@@ -207,7 +207,7 @@ def open_modal(ack, body, client):
             "block_id": "is_security_incident",
             "text": {
                 "type": "mrkdwn",
-                "text": "*Is this a critical incident?*",
+                "text": "*Is this a security incident?*",
             },
             "accessory": {
                 "action_id": "open_incident_modal_set_security_type",
@@ -586,7 +586,7 @@ def open_modal(ack, body, client):
                 "block_id": "incident_bot_pager_service_select",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Choose a Service to page:",
+                    "text": "*Which Service is affected?*",
                 },
                 "accessory": {
                     "action_id": "update_incident_bot_pager_selected_service",
@@ -608,11 +608,21 @@ def open_modal(ack, body, client):
                 },
             },
             {
+                "type": "context",
+                "block_id": "incident_bot_pager_service_select_context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "The services you've defined in PagerDuty, which is affected during the incident"
+                    }
+                ]
+            },
+            {
                 "type": "section",
                 "block_id": "incident_bot_pager_team_select",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Choose a team to page:",
+                    "text": "*Which team do you need to page?*",
                 },
                 "accessory": {
                     "action_id": "update_incident_bot_pager_selected_team",
@@ -634,11 +644,21 @@ def open_modal(ack, body, client):
                 },
             },
             {
+                "type": "context",
+                "block_id": "incident_bot_pager_team_context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "Select the team you want to notify via PagerDuty to address the incident"
+                    }
+                ]
+            },
+            {
                 "type": "section",
                 "block_id": "incident_bot_pager_priority_select",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Choose an urgency:",
+                    "text": "*What's Esclation urgency level?*",
                 },
                 "accessory": {
                     "action_id": "update_incident_bot_pager_selected_priority",
@@ -666,11 +686,21 @@ def open_modal(ack, body, client):
                 },
             },
             {
+                "type": "context",
+                "block_id": "incident_bot_pager_priority_select_context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "Choose the urgency level between *low* or *high* for the PagerDuty escalation"
+                    }
+                ]
+            },
+            {
                 "type": "section",
                 "block_id": "incident_bot_pager_incident_select",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Choose an incident:",
+                    "text": "*Specify the Incident to Escalate?*",
                 },
                 "accessory": {
                     "action_id": "update_incident_bot_pager_selected_incident",
@@ -702,6 +732,16 @@ def open_modal(ack, body, client):
                     ],
                 },
             },
+            {
+                "type": "context",
+                "block_id": "incident_bot_pager_incident_select_context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "Choose among ongoing open incidents to escalate using PagerDuty."
+                    }
+                ]
+            },
         ]
     client.views_open(
         # Pass a valid trigger_id within 3 seconds of receiving it
@@ -712,7 +752,7 @@ def open_modal(ack, body, client):
             "callback_id": "incident_bot_pager_modal",
             "title": {
                 "type": "plain_text",
-                "text": "Page a team in PagerDuty",
+                "text": "Escalate",
             },
             "blocks": blocks
             if "pagerduty" in config.active.integrations
@@ -741,6 +781,7 @@ def update_modal(ack, body, client):
     incident_channel_id = incident.split("/")[1]
     priority = parsed.get("update_incident_bot_pager_selected_priority")
     team = parsed.get("update_incident_bot_pager_selected_team")
+    service = parsed.get("update_incident_bot_pager_selected_service")
 
     # Call views_update with the built-in client
     client.views_update(
@@ -754,7 +795,7 @@ def update_modal(ack, body, client):
             "callback_id": "incident_bot_pager_modal",
             "title": {
                 "type": "plain_text",
-                "text": "Page a team in PagerDuty",
+                "text": "Escalate",
             },
             "submit": {"type": "plain_text", "text": "Page"},
             "blocks": [
@@ -764,11 +805,19 @@ def update_modal(ack, body, client):
                     "text": {
                         "type": "mrkdwn",
                         "text": "*You have selected the following options - please review them carefully.*\n\n"
-                        + "Once you click Submit, an incident will be created in PagerDuty for the team listed here and they will be paged. "
-                        + "They will also be invited to the incident's Slack channel.",
+                        + "After clicking Submit, an incident will be created in PagerDuty for the service and team listed here ,They will be paged. "
+                        + "and also invited to the below incident's Slack channel.",
                     },
                 },
                 {"type": "divider"},
+                {
+                    "type": "section",
+                    "block_id": f"service/{service}",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*Service:* _{service}_",
+                    },
+                },
                 {
                     "type": "section",
                     "block_id": f"team/{team}",
@@ -820,7 +869,7 @@ def handle_static_action(ack, body, logger,client):
             "block_id": block_id,
             "text": {
                 "type": "mrkdwn",
-                "text": "Choose a team to page:",
+                "text": "*Which team do you need to page?*",
             },
             "accessory": {
                 "action_id": "update_incident_bot_pager_selected_team",
@@ -850,21 +899,11 @@ def handle_static_action(ack, body, logger,client):
                 },
             },
         }
-    # update_team_state = {
-    #     'update_incident_bot_pager_team_service': {
-    #         'type': 'static_select',
-    #         'selected_option': {
-    #             'text': {
-    #                 'type': 'plain_text',
-    #                 'text': service_esp,
-    #                 'emoji': True
-    #             },
-    #             'value': service_esp
-    #         }
-    #     }
-    # }
-    # body["view"]["state"]["values"]['incident_bot_pager_team_select'] =update_team_state
-    update_view[1] = update_block
+    for i, block in enumerate(update_view):
+        if block.get("block_id", "").startswith("incident_bot_pager_team_select") and block.get("type") == "section":
+            update_view[i] = update_block
+            break
+
     client.views_update(
         # Pass the view_id
         view_id=body["view"]["id"],
@@ -893,11 +932,16 @@ def handle_submission(ack, body, say, view):
     """
     ack()
     from bot.pagerduty import api as pd_api
-
-    team = view["blocks"][2]["block_id"].split("/")[1]
-    priority = view["blocks"][3]["block_id"].split("/")[1]
-    incident_channel_name = view["blocks"][4]["block_id"].split("/")[1]
-    incident_channel_id = view["blocks"][4]["block_id"].split("/")[2]
+    for block in view["blocks"]:
+        if block.get("block_id", "").startswith("team") and block.get("type") == "section":
+            team = block["block_id"].split("/")[1]
+        elif block.get("block_id", "").startswith("service") and block.get("type") == "section":
+            service = block["block_id"].split("/")[1]
+        elif block.get("block_id", "").startswith("priority") and block.get("type") == "section":
+            priority = block["block_id"].split("/")[1]
+        elif block.get("block_id", "").startswith("incident/") and block.get("type") == "section":
+            incident_channel_name = block["block_id"].split("/")[1]
+            incident_channel_id = block["block_id"].split("/")[2]
     paging_user = body["user"]["name"]
 
     try:
@@ -908,13 +952,13 @@ def handle_submission(ack, body, say, view):
             channel_id=incident_channel_id,
             paging_user=paging_user,
         )
-        msg = f"*NOTICE:* I have paged the team/escalation policy '{team}' to respond to this incident via PagerDuty at the request of *{paging_user}*."
+        msg = f"*NOTICE:* I have paged the team/escalation policy *{team}* for the service *{service}* to respond to this incident via PagerDuty at the request of *{paging_user}*."
     except Exception as error:
         msg = f"Looks like I encountered an error issuing that page: {error}"
     finally:
         say(
             channel=incident_channel_id,
-            text=f"*NOTICE:* I have paged the team/escalation policy '{team}' "
+            text=f"*NOTICE:* I have paged the team/escalation policy *{team}* for the service *{service}* "
             + f"to respond to this incident via PagerDuty at the request of *{paging_user}*.",
             blocks=[
                 {
