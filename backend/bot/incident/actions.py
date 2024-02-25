@@ -348,6 +348,9 @@ async def set_status(
         incident_commander = extract_role_owner(
             message_blocks, "role_incident_commander"
         )
+        communications_liaison = extract_role_owner(
+            message_blocks, "role_communications_liaison"
+        )
         # Error out if incident commander hasn't been claimed
         for role, person in {
             "incident commander": incident_commander,
@@ -387,7 +390,7 @@ async def set_status(
         }
         # We want real user names to tag in the rca doc
         actual_user_names = []
-        for person in [incident_commander]:
+        for person in [incident_commander,communications_liaison,reporter]:
             if person != "_none_":
                 fmt = person.replace("<", "").replace(">", "").replace("@", "")
                 invite_user_to_channel(rcaChannelDetails["id"], fmt)
