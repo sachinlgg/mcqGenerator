@@ -231,15 +231,6 @@ class TestIncidentManagement:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Incident Guide",
-                            },
-                            "url": "https://changeme.com",
-                            "action_id": "incident.incident_guide_link",
-                        },
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
                                 "text": "Incident Postmortems",
                             },
                             "url": "https://changeme.com",
@@ -654,15 +645,6 @@ class TestIncidentManagement:
                         "text": {"type": "plain_text", "text": "War Room"},
                         "url": "mock",
                         "action_id": "incident.click_conference_bridge_link",
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Incident Guide",
-                        },
-                        "url": "https://changeme.com",
-                        "action_id": "incident.incident_guide_link",
                     },
                     {
                         "type": "button",
