@@ -92,15 +92,6 @@ class IncidentChannelDigestNotification:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Incident Guide",
-                            },
-                            "url": config.active.links.get("incident_guide"),
-                            "action_id": "incident.incident_guide_link",
-                        },
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
                                 "text": "Incident Postmortems",
                             },
                             "url": config.active.links.get(
@@ -205,15 +196,6 @@ class IncidentChannelDigestNotification:
                         },
                         "url": conference_bridge,
                         "action_id": "incident.click_conference_bridge_link",
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Incident Guide",
-                        },
-                        "url": config.active.links.get("incident_guide"),
-                        "action_id": "incident.incident_guide_link",
                     },
                     {
                         "type": "button",
