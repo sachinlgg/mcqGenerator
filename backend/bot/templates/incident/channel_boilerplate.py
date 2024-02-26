@@ -107,47 +107,71 @@ class IncidentChannelBoilerplateMessage:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*{}*:\n _none_".format(
+                            "text": "*{}*: _none_".format(
                                 role.title().replace("_", " ")
                             ),
                         },
                     },
                     {
-                        "type": "section",
-                        "block_id": f"claim_{role}",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Claim Role",
-                            "emoji": True,
-                        },
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Claim",
-                                "emoji": True,
+                        "type": "actions",
+                        "block_id": f"claim_assign_engineer_{role}",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Claim Role",
+                                    "emoji": True
+                                },
+                                "value": role,
+                                "action_id": "incident.claim_role"
                             },
-                            "value": role,
-                            "action_id": "incident.claim_role",
-                        },
+                            {
+                                "type": "users_select",
+                                "action_id": "incident.assign_role",
+                                "placeholder": {
+                                    "type": "plain_text",
+                                    "text": f"Assign a role {role} ..."
+                                }
+                            }
+                        ]
                     },
-                    {
-                        "type": "section",
-                        "block_id": f"assign_{role}",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Assign Role",
-                            "emoji": True,
-                        },
-                        "accessory": {
-                            "action_id": "incident.assign_role",
-                            "type": "users_select",
-                            "placeholder": {
-                                "type": "plain_text",
-                                "text": "Select a user...",
-                            },
-                        },
-                    },
+                    # {
+                    #     "type": "section",
+                    #     "block_id": f"claim_{role}",
+                    #     "text": {
+                    #         "type": "plain_text",
+                    #         "text": "Claim Role",
+                    #         "emoji": True,
+                    #     },
+                    #     "accessory": {
+                    #         "type": "button",
+                    #         "text": {
+                    #             "type": "plain_text",
+                    #             "text": "Claim",
+                    #             "emoji": True,
+                    #         },
+                    #         "value": role,
+                    #         "action_id": "incident.claim_role",
+                    #     },
+                    # },
+                    # {
+                    #     "type": "section",
+                    #     "block_id": f"assign_{role}",
+                    #     "text": {
+                    #         "type": "plain_text",
+                    #         "text": "Assign Role",
+                    #         "emoji": True,
+                    #     },
+                    #     "accessory": {
+                    #         "action_id": "incident.assign_role",
+                    #         "type": "users_select",
+                    #         "placeholder": {
+                    #             "type": "plain_text",
+                    #             "text": "Select a user...",
+                    #         },
+                    #     },
+                    # },
                     {"type": "divider"},
                 ]
             )

@@ -98,7 +98,7 @@ async def assign_role(
                 channel_name = incident_data.channel_name
                 user_id = action_parameters.actions.get("selected_user")
                 action_value = "_".join(
-                    action_parameters.actions.get("block_id").split("_")[1:3]
+                    action_parameters.actions.get("block_id").split("_")[3:]
                 )
                 # Find the index of the block that contains info on
                 # the role we want to update and format it with the new user later
@@ -144,7 +144,7 @@ async def assign_role(
                 logger.error(f"Error processing incident user update from web: {error}")
 
     new_role_name = temp_new_role_name.title()
-    blocks[index]["text"]["text"] = f"*{new_role_name}*:\n <@{user_id}>"
+    blocks[index]["text"]["text"] = f"*{new_role_name}*: <@{user_id}>"
     # Convert user ID to user name to use later.
     user_name = next(
         (
@@ -231,8 +231,26 @@ async def claim_role(action_parameters: type[ActionParametersSlack]):
     temp_new_role_name = action_value.replace("_", " ")
     new_role_name = temp_new_role_name.title()
     user = action_parameters.user_details["name"]
-    blocks[index]["text"]["text"] = f"*{new_role_name}*:\n <@{user}>"
+    blocks[index]["text"]["text"] = f"*{new_role_name}*: <@{user}>"
     # Update the message
+    
+    # Update the Auto Selected user in choose role
+
+    index = tools.find_index_in_list(blocks, "block_id", f"claim_assign_engineer_{action_value}")
+    if index == -1:
+        raise IndexNotFoundError(
+            f"Could not find index for block_id role_{action_value}"
+        )
+    user_id = action_parameters.user_details["id"]
+    blocks[index]['elements'][1] = {
+        "type": "users_select",
+        "action_id": "incident.assign_role",
+        "placeholder": {
+            "type": "plain_text",
+            "text": f"Assign a role {action_value} ..."
+        },
+        "initial_user": f"{user_id}"
+    }
     slack_web_client.chat_update(
         channel=incident_data.channel_id,
         ts=action_parameters.message_details["ts"],

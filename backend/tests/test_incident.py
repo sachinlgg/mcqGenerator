@@ -394,44 +394,32 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "*Incident Commander*:\n _none_",
+                        "text": "*Incident Commander*: _none_",
                     },
                 },
                 {
-                    "type": "section",
-                    "block_id": "claim_incident_commander",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Claim Role",
-                        "emoji": True,
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Claim",
-                            "emoji": True,
+                    "type": "actions",
+                    "block_id": "claim_assign_engineer_incident_commander",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Claim Role",
+                                "emoji": True
+                            },
+                            "value": "incident_commander",
+                            "action_id": "incident.claim_role"
                         },
-                        "value": "incident_commander",
-                        "action_id": "incident.claim_role",
-                    },
-                },
-                {
-                    "type": "section",
-                    "block_id": "assign_incident_commander",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Assign Role",
-                        "emoji": True,
-                    },
-                    "accessory": {
-                        "action_id": "incident.assign_role",
-                        "type": "users_select",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "Select a user...",
-                        },
-                    },
+                        {
+                            "type": "users_select",
+                            "action_id": "incident.assign_role",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Assign a role incident_commander ..."
+                            }
+                        }
+                    ]
                 },
                 {"type": "divider"},
                 {
@@ -439,44 +427,32 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "*Technical Lead*:\n _none_",
+                        "text": "*Technical Lead*: _none_",
                     },
                 },
                 {
-                    "type": "section",
-                    "block_id": "claim_technical_lead",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Claim Role",
-                        "emoji": True,
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Claim",
-                            "emoji": True,
+                    "type": "actions",
+                    "block_id": "claim_assign_engineer_technical_lead",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Claim Role",
+                                "emoji": True
+                            },
+                            "value": "technical_lead",
+                            "action_id": "incident.claim_role"
                         },
-                        "value": "technical_lead",
-                        "action_id": "incident.claim_role",
-                    },
-                },
-                {
-                    "type": "section",
-                    "block_id": "assign_technical_lead",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Assign Role",
-                        "emoji": True,
-                    },
-                    "accessory": {
-                        "action_id": "incident.assign_role",
-                        "type": "users_select",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "Select a user...",
-                        },
-                    },
+                        {
+                            "type": "users_select",
+                            "action_id": "incident.assign_role",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Assign a role technical_lead ..."
+                            }
+                        }
+                    ]
                 },
                 {"type": "divider"},
                 {
@@ -484,44 +460,32 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "*Communications Liaison*:\n _none_",
+                        "text": "*Communications Liaison*: _none_",
                     },
                 },
                 {
-                    "type": "section",
-                    "block_id": "claim_communications_liaison",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Claim Role",
-                        "emoji": True,
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Claim",
-                            "emoji": True,
+                    "type": "actions",
+                    "block_id": "claim_assign_engineer_communications_liaison",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Claim Role",
+                                "emoji": True
+                            },
+                            "value": "communications_liaison",
+                            "action_id": "incident.claim_role"
                         },
-                        "value": "communications_liaison",
-                        "action_id": "incident.claim_role",
-                    },
-                },
-                {
-                    "type": "section",
-                    "block_id": "assign_communications_liaison",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Assign Role",
-                        "emoji": True,
-                    },
-                    "accessory": {
-                        "action_id": "incident.assign_role",
-                        "type": "users_select",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "Select a user...",
-                        },
-                    },
+                        {
+                            "type": "users_select",
+                            "action_id": "incident.assign_role",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Assign a role communications_liaison ..."
+                            }
+                        }
+                    ]
                 },
                 {"type": "divider"},
                 {
