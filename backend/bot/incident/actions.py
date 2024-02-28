@@ -36,6 +36,7 @@ from bot.templates.incident.digest_notification import (
 from bot.templates.incident.resolution_message import IncidentResolutionMessage
 from bot.templates.incident.updates import IncidentUpdate
 from bot.templates.incident.user_dm import IncidentUserNotification
+from bot.templates.incident.private_message import PrivateMessage
 from typing import Any, Dict
 
 logger = logging.getLogger("incident.actions")
@@ -178,7 +179,17 @@ async def assign_role(
         logger.debug(f"\n{result}\n")
     except slack_sdk.errors.SlackApiError as error:
         logger.error(f"Error sending role update to the incident channel: {error}")
-
+    # Send private message int the dedicated incident channel to the Incident commander to guide what next steps to follow
+    try:
+        result = slack_web_client.chat_postEphemeral(
+            **PrivateMessage.message(
+                channel=target_channel, role=new_role_name, user=user_id, message="Please asses the impact and communicate status. This helps everyone stay up to date with the incident."
+            ),
+            text=f"Please asses the impact and communicate status. This helps everyone stay up to date with the incident",
+        )
+        logger.debug(f"\n{result}\n")
+    except slack_sdk.errors.SlackApiError as error:
+        logger.error(f"Error sending private message to incident channel: {error}")
     # Let the user know they've been assigned the role and what to do
     try:
         result = slack_web_client.chat_postMessage(
@@ -267,6 +278,17 @@ async def claim_role(action_parameters: type[ActionParametersSlack]):
         logger.debug(f"\n{result}\n")
     except slack_sdk.errors.SlackApiError as error:
         logger.error(f"Error sending role update to incident channel: {error}")
+    # Send private message int the dedicated incident channel to the Incident commander to guide what next steps to follow
+    try:
+        result = slack_web_client.chat_postEphemeral(
+            **PrivateMessage.message(
+                channel=incident_data.channel_id, role=new_role_name, user=user_id, message="Please asses the impact and communicate status. This helps everyone stay up to date with the incident."
+            ),
+            text=f"Please asses the impact and communicate status. This helps everyone stay up to date with the incident",
+        )
+        logger.debug(f"\n{result}\n")
+    except slack_sdk.errors.SlackApiError as error:
+        logger.error(f"Error sending private message to incident channel: {error}")
     # Let the user know they've been assigned the role and what to do
     try:
         result = slack_web_client.chat_postMessage(
