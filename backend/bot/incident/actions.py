@@ -38,6 +38,8 @@ from bot.templates.incident.updates import IncidentUpdate
 from bot.templates.incident.user_dm import IncidentUserNotification
 from bot.templates.incident.private_message import PrivateMessage
 from typing import Any, Dict
+import re
+import random
 
 logger = logging.getLogger("incident.actions")
 
@@ -101,6 +103,11 @@ async def assign_role(
                 action_value = "_".join(
                     action_parameters.actions.get("block_id").split("_")[3:]
                 )
+                last_underscore_index = action_value.rfind('_')
+                if last_underscore_index != -1 and last_underscore_index < len(action_value) - 1 and action_value[last_underscore_index + 1:].isdigit():
+                    action_value = action_value[:last_underscore_index]
+                else:
+                    action_value = action_value
                 # Find the index of the block that contains info on
                 # the role we want to update and format it with the new user later
                 blocks = action_parameters.message_details.get("blocks")
@@ -162,7 +169,7 @@ async def assign_role(
             channel=target_channel,
             ts=ts,
             blocks=blocks,
-            text=f"{user_id} is now {new_role_name}",
+            text=f"<@{user_id}> is now {new_role_name}",
         )
     except Exception as error:
         logger.error(f"Error updating channel message during user update: {error}")
@@ -173,7 +180,7 @@ async def assign_role(
             **IncidentUpdate.role(
                 channel=target_channel, role=new_role_name, user=user_id
             ),
-            text=f"{user_id} is now {new_role_name}",
+            text=f"<@{user_id}> is now {new_role_name}",
         )
 
         logger.debug(f"\n{result}\n")
@@ -196,7 +203,7 @@ async def assign_role(
             **IncidentUserNotification.create(
                 user=user_id, role=target_role, channel=target_channel
             ),
-            text=f"You have been assigned {new_role_name} for incident <#{target_channel}>",
+            text=f" <@{user_id}> have been assigned {new_role_name} for incident <#{target_channel}>",
         )
         logger.debug(f"\n{result}\n")
     except slack_sdk.errors.SlackApiError as error:
@@ -247,12 +254,17 @@ async def claim_role(action_parameters: type[ActionParametersSlack]):
     
     # Update the Auto Selected user in choose role
 
-    index = tools.find_index_in_list(blocks, "block_id", f"claim_assign_engineer_{action_value}")
+    # index = tools.find_index_in_list(blocks, "block_id", f"claim_assign_engineer_{action_value}")
+    pattern = re.compile(f"^claim_assign_engineer_{re.escape(action_value)}")
+    index = next((i for i, block in enumerate(blocks) if pattern.match(block.get("block_id", ""))), -1)
     if index == -1:
         raise IndexNotFoundError(
             f"Could not find index for block_id role_{action_value}"
         )
     user_id = action_parameters.user_details["id"]
+    random_number = random.randint(1, 100)
+    blocks[index]['block_id'] = f"claim_assign_engineer_{action_value}_{random_number}"
+
     blocks[index]['elements'][1] = {
         "type": "users_select",
         "action_id": "incident.assign_role",
@@ -273,7 +285,7 @@ async def claim_role(action_parameters: type[ActionParametersSlack]):
             **IncidentUpdate.role(
                 channel=incident_data.channel_id, role=new_role_name, user=user
             ),
-            text=f"You have claimed {new_role_name} for incident <#{incident_data.channel_id}>",
+            text=f"<@{user_id}> has been assigned {new_role_name} for incident <#{incident_data.channel_id}>",
         )
         logger.debug(f"\n{result}\n")
     except slack_sdk.errors.SlackApiError as error:
@@ -369,6 +381,7 @@ async def set_status(
     action_parameters(type[ActionParametersSlack]) containing Slack actions data
     """
     incident_data = db_read_incident(channel_id=action_parameters.channel_details["id"])
+    incident_details_info = {"incident_data": incident_data}
     channel_name = incident_data.channel_name
     action_value = action_parameters.actions["selected_option"]["value"]
     user = action_parameters.user_details["id"]
@@ -428,6 +441,7 @@ async def set_status(
             "id": rca_channel["channel"]["id"],
             "name": rca_channel["channel"]["name"],
         }
+        incident_details_info["rcaChannelDetails"] = rcaChannelDetails
         # We want real user names to tag in the rca doc
         actual_user_names = []
         for person in [incident_commander,communications_liaison,reporter]:
@@ -522,6 +536,7 @@ async def set_status(
                     incident_id=incident_data.incident_id,
                     event=f"RCA was automatically created: {rca_link}",
                 ),
+                incident_details_info["rcaChannelDetails"]["rca_link"] = rca_link
                 rca_boilerplate_message_blocks.extend(
                     [
                         {
@@ -540,7 +555,7 @@ async def set_status(
                                     "type": "button",
                                     "text": {
                                         "type": "plain_text",
-                                        "text": "View RCA In Confluence",
+                                        "text": "Incident Postmoterm",
                                     },
                                     "style": "primary",
                                     "url": rca_link,
@@ -596,7 +611,7 @@ async def set_status(
         # Send message to incident channel
         try:
             result = slack_web_client.chat_postMessage(
-                **IncidentResolutionMessage.create(channel=incident_data.channel_id),
+                **IncidentResolutionMessage.create(channel=incident_data.channel_id,incident_details_info=incident_details_info),
                 text="The incident has been resolved.",
             )
             logger.debug(f"\n{result}\n")
@@ -878,7 +893,7 @@ def extract_role_owner(message_blocks: Dict[Any, Any], block_id: str) -> str:
     index = tools.find_index_in_list(message_blocks, "block_id", block_id)
     if index == -1:
         raise IndexNotFoundError(f"Could not find index for block_id {block_id}")
-    return message_blocks[index]["text"]["text"].split("\n")[1].replace(" ", "")
+    return message_blocks[index]["text"]["text"].split(":")[1].replace(" ", "")
 
 
 

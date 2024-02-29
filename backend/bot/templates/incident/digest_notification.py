@@ -92,7 +92,7 @@ class IncidentChannelDigestNotification:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Incident Postmortems",
+                                "text": "Postmortem Library",
                             },
                             "url": config.active.links.get(
                                 "incident_postmortems"
@@ -201,7 +201,7 @@ class IncidentChannelDigestNotification:
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "Incident Postmortems",
+                            "text": "Postmortem Library",
                         },
                         "url": config.active.links.get("incident_postmortems"),
                         "action_id": "incident.incident_postmortem_link",

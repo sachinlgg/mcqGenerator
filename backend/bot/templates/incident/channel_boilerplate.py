@@ -47,57 +47,6 @@ class IncidentChannelBoilerplateMessage:
                 },
             },
             {"type": "divider"},
-            {
-                "block_id": "status",
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": "*Current Status:*"},
-                "accessory": {
-                    "type": "static_select",
-                    "action_id": "incident.set_status",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": config.active.statuses[0].title(),
-                        "emoji": True,
-                    },
-                    "options": [
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": st.title(),
-                                "emoji": True,
-                            },
-                            "value": st,
-                        }
-                        for st in config.active.statuses
-                    ],
-                },
-            },
-            {
-                "block_id": "severity",
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": "*Severity:*"},
-                "accessory": {
-                    "type": "static_select",
-                    "action_id": "incident.set_severity",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": severity.upper(),
-                        "emoji": True,
-                    },
-                    "options": [
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": sev.upper(),
-                                "emoji": True,
-                            },
-                            "value": sev,
-                        }
-                        for sev, _ in config.active.severities.items()
-                    ],
-                },
-            },
-            {"type": "divider"},
         ]
         for role, _ in config.active.roles.items():
             blocks.extend(
@@ -136,45 +85,60 @@ class IncidentChannelBoilerplateMessage:
                             }
                         ]
                     },
-                    # {
-                    #     "type": "section",
-                    #     "block_id": f"claim_{role}",
-                    #     "text": {
-                    #         "type": "plain_text",
-                    #         "text": "Claim Role",
-                    #         "emoji": True,
-                    #     },
-                    #     "accessory": {
-                    #         "type": "button",
-                    #         "text": {
-                    #             "type": "plain_text",
-                    #             "text": "Claim",
-                    #             "emoji": True,
-                    #         },
-                    #         "value": role,
-                    #         "action_id": "incident.claim_role",
-                    #     },
-                    # },
-                    # {
-                    #     "type": "section",
-                    #     "block_id": f"assign_{role}",
-                    #     "text": {
-                    #         "type": "plain_text",
-                    #         "text": "Assign Role",
-                    #         "emoji": True,
-                    #     },
-                    #     "accessory": {
-                    #         "action_id": "incident.assign_role",
-                    #         "type": "users_select",
-                    #         "placeholder": {
-                    #             "type": "plain_text",
-                    #             "text": "Select a user...",
-                    #         },
-                    #     },
-                    # },
                     {"type": "divider"},
                 ]
             )
+        blocks.extend([{
+            "block_id": "status",
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": "*Current Status:*"},
+            "accessory": {
+                "type": "static_select",
+                "action_id": "incident.set_status",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": config.active.statuses[0].title(),
+                    "emoji": True,
+                },
+                "options": [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": st.title(),
+                            "emoji": True,
+                        },
+                        "value": st,
+                    }
+                    for st in config.active.statuses
+                ],
+            },
+        },
+            {
+                "block_id": "severity",
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": "*Severity:*"},
+                "accessory": {
+                    "type": "static_select",
+                    "action_id": "incident.set_severity",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": severity.upper(),
+                        "emoji": True,
+                    },
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": sev.upper(),
+                                "emoji": True,
+                            },
+                            "value": sev,
+                        }
+                        for sev, _ in config.active.severities.items()
+                    ],
+                },
+            },
+            {"type": "divider"},])
         button_el = [
             {
                 "type": "button",
@@ -218,7 +182,7 @@ class IncidentChannelBoilerplateMessage:
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Incident Postmortems",
+                        "text": "Postmortem Library",
                     },
                     "url": config.active.links.get("incident_postmortems"),
                     "action_id": "incident.incident_postmortem_link",
@@ -232,7 +196,6 @@ class IncidentChannelBoilerplateMessage:
                     "type": "actions",
                     "elements": button_el,
                 },
-                {"type": "divider"},
             ]
         )
 

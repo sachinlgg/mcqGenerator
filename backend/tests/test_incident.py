@@ -231,7 +231,7 @@ class TestIncidentManagement:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Incident Postmortems",
+                                "text": "Postmortem Library",
                             },
                             "url": "https://changeme.com",
                             "action_id": "incident.incident_postmortem_link",
@@ -280,103 +280,6 @@ class TestIncidentManagement:
                     "text": {
                         "type": "mrkdwn",
                         "text": "The incident initiates in *investigating* mode.and can transition through statuses until resolved.",
-                    },
-                },
-                {"type": "divider"},
-                {
-                    "block_id": "status",
-                    "type": "section",
-                    "text": {"type": "mrkdwn", "text": "*Current Status:*"},
-                    "accessory": {
-                        "type": "static_select",
-                        "action_id": "incident.set_status",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "Investigating",
-                            "emoji": True,
-                        },
-                        "options": [
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Investigating",
-                                    "emoji": True,
-                                },
-                                "value": "investigating",
-                            },
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Identified",
-                                    "emoji": True,
-                                },
-                                "value": "identified",
-                            },
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Monitoring",
-                                    "emoji": True,
-                                },
-                                "value": "monitoring",
-                            },
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Resolved",
-                                    "emoji": True,
-                                },
-                                "value": "resolved",
-                            },
-                        ],
-                    },
-                },
-                {
-                    "block_id": "severity",
-                    "type": "section",
-                    "text": {"type": "mrkdwn", "text": "*Severity:*"},
-                    "accessory": {
-                        "type": "static_select",
-                        "action_id": "incident.set_severity",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "SEV4",
-                            "emoji": True,
-                        },
-                        "options": [
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "SEV1",
-                                    "emoji": True,
-                                },
-                                "value": "sev1",
-                            },
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "SEV2",
-                                    "emoji": True,
-                                },
-                                "value": "sev2",
-                            },
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "SEV3",
-                                    "emoji": True,
-                                },
-                                "value": "sev3",
-                            },
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "SEV4",
-                                    "emoji": True,
-                                },
-                                "value": "sev4",
-                            },
-                        ],
                     },
                 },
                 {"type": "divider"},
@@ -480,6 +383,103 @@ class TestIncidentManagement:
                 },
                 {"type": "divider"},
                 {
+                    "block_id": "status",
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": "*Current Status:*"},
+                    "accessory": {
+                        "type": "static_select",
+                        "action_id": "incident.set_status",
+                        "placeholder": {
+                            "type": "plain_text",
+                            "text": "Investigating",
+                            "emoji": True,
+                        },
+                        "options": [
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Investigating",
+                                    "emoji": True,
+                                },
+                                "value": "investigating",
+                            },
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Identified",
+                                    "emoji": True,
+                                },
+                                "value": "identified",
+                            },
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Monitoring",
+                                    "emoji": True,
+                                },
+                                "value": "monitoring",
+                            },
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Resolved",
+                                    "emoji": True,
+                                },
+                                "value": "resolved",
+                            },
+                        ],
+                    },
+                },
+                {
+                    "block_id": "severity",
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": "*Severity:*"},
+                    "accessory": {
+                        "type": "static_select",
+                        "action_id": "incident.set_severity",
+                        "placeholder": {
+                            "type": "plain_text",
+                            "text": "SEV4",
+                            "emoji": True,
+                        },
+                        "options": [
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "SEV1",
+                                    "emoji": True,
+                                },
+                                "value": "sev1",
+                            },
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "SEV2",
+                                    "emoji": True,
+                                },
+                                "value": "sev2",
+                            },
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "SEV3",
+                                    "emoji": True,
+                                },
+                                "value": "sev3",
+                            },
+                            {
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "SEV4",
+                                    "emoji": True,
+                                },
+                                "value": "sev4",
+                            },
+                        ],
+                    },
+                },
+                {"type": "divider"},
+                {
                     "block_id": "help_buttons",
                     "type": "actions",
                     "elements": [
@@ -506,14 +506,13 @@ class TestIncidentManagement:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Incident Postmortems",
+                                "text": "Postmortem Library",
                             },
                             "url": "https://changeme.com",
                             "action_id": "incident.incident_postmortem_link",
                         },
                     ],
                 },
-                {"type": "divider"},
             ],
         }
 
@@ -614,7 +613,7 @@ class TestIncidentManagement:
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "Incident Postmortems",
+                            "text": "Postmortem Library",
                         },
                         "url": "https://changeme.com",
                         "action_id": "incident.incident_postmortem_link",

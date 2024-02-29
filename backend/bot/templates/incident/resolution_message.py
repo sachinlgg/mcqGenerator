@@ -3,7 +3,11 @@ import config
 
 class IncidentResolutionMessage:
     @staticmethod
-    def create(channel: str):
+    def create(channel: str, incident_details_info: dict = None):
+        incident_channel_rca = incident_details_info.get("rcaChannelDetails", {})
+        incident_rca_channel_name = incident_channel_rca.get("name", "")
+        incident_rca_link = incident_channel_rca.get("rca_link")
+        incident_postmortems_url = incident_rca_link or config.active.links.get("incident_postmortems")
         return {
             "channel": channel,
             "blocks": [
@@ -19,9 +23,9 @@ class IncidentResolutionMessage:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "This incident has been marked as resolved. The Incident Commander "
-                        + "will be invited to an additional channel to discuss the RCA. Please use "
-                        + "that channel to coordinate with others as needed. You may optionally export "
+                        "text": "This incident has been marked as resolved. The Incident Commander and relevant stakeholders "
+                        + f"are invited to rca channel *#{incident_rca_channel_name}* to discuss the RCA."
+                        + "\n You may optionally export "
                         + "the chat log for this incident below so it can be referenced in the RCA.",
                     },
                 },
@@ -59,11 +63,9 @@ class IncidentResolutionMessage:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Incident Postmortems",
+                                "text": "Incident Postmortem",
                             },
-                            "url": config.active.links.get(
-                                "incident_postmortems"
-                            ),
+                            "url": incident_postmortems_url,
                         },
                     ],
                 },

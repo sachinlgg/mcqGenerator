@@ -20,6 +20,7 @@ from bot.slack.client import (
     slack_workspace_id,
 )
 from bot.statuspage.slack import return_new_statuspage_incident_message
+from bot.statuspage.slack import return_new_statuspage_incident_message_with_zoom
 from bot.templates.incident.channel_boilerplate import (
     IncidentChannelBoilerplateMessage,
 )
@@ -243,6 +244,7 @@ def create_incident(
             incident = Incident(request_parameters)
             created_channel_details = incident.created_channel_details
             created_channel_details['user'] = user
+            created_channel_details['conference_bridge'] = incident.conference_bridge
             """
             Notify incidents digest channel
             """
@@ -324,46 +326,34 @@ def create_incident(
             """
             Post conference link in the channel upon creation
             """
-            try:
-                conference_bridge_message = slack_web_client.chat_postMessage(
-                    channel=created_channel_details["id"],
-                    text=f":busts_in_silhouette: Please Join the Incident Investigation Conference Here: {incident.conference_bridge}",
-                    blocks=[
-                        {
-                            "type": "header",
-                            "text": {
-                                "type": "plain_text",
-                                "text": ":busts_in_silhouette: Join the Incident Investigation Conference Here.",
-                            },
-                        },
-                        {"type": "divider"},
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": ":firefighter: :arrow_right: :mag:"
-                            },
-                            "accessory": {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Zoom War Room",
-                                },
-                                "url": f"{incident.conference_bridge}",  # Add your Zoom URL here
-                                "style": "primary",
-                                "action_id": "zoom.join_meeting"
-                            },
-                        },
-                    ],
-                )
-                slack_web_client.pins_add(
-                    channel=created_channel_details["id"],
-                    timestamp=conference_bridge_message["message"]["ts"],
-                )
-            except slack_sdk.errors.SlackApiError as error:
-                logger.error(
-                    f"Error sending conference bridge link to channel: {error}"
-                )
+            # try:
+            #     old_block = bp_message["message"]["blocks"]
+            #     index = tools.find_index_in_list(
+            #         old_block, "block_id", "help_buttons"
+            #     )
+            #     if index == -1:
+            #         raise IndexNotFoundError(
+            #             f"Could not find index for block_id role_{action_value}"
+            #         )
+            #     old_block[index]["elements"].append({
+            #         "type": "button",
+            #         "text": {
+            #             "type": "plain_text",
+            #             "text": "Zoom War Room",
+            #         },
+            #         "url": f"{incident.conference_bridge}",
+            #         "action_id": "zoom.join_meeting",
+            #     })
+            #     conference_bridge_message = slack_web_client.chat_update(
+            #         channel=created_channel_details["id"],
+            #         ts=bp_message["ts"],
+            #         blocks=old_block,
+            #         text="",
+            #     )
+            # except slack_sdk.errors.SlackApiError as error:
+            #     logger.error(
+            #         f"Error sending conference bridge link to channel: {error}"
+            #     )
             """
             Write incident entry to database
             """
@@ -372,7 +362,6 @@ def create_incident(
                     created_channel_details["name"]
                 )
             )
-            # incident.roles = {'incident_reporter': user}
             try:
                 db_write_incident(
                     incident_id=created_channel_details["name"],
@@ -476,23 +465,60 @@ async def handle_incident_optional_features(
                     logger.error(f"Error when inviting auto users: {error}")
 
     """
+    Post a zoom Link Join Button if integration is enabled
+    """
+    zoom_info = {"enabled": False, "url": ""}
+    status_page_info = {"enabled": False }
+    if "zoom" in config.active.integrations and config.active.integrations.get(
+            "zoom"
+    ).get("auto_create_meeting", False):
+        zoom_info = {"enabled": True, "url": created_channel_details.get("conference_bridge", "")}
+        zoom_sp_starter_message_content = return_new_statuspage_incident_message_with_zoom(channel_id, zoom_info, status_page_info)
+        try:
+            # Assuming slack_web_client is defined somewhere in your code
+            zoom_sp_starter_message = slack_web_client.chat_postMessage(
+                **zoom_sp_starter_message_content,
+                text="",
+            )
+            # slack_web_client.pins_add(
+            #     channel=channel_id,
+            #     timestamp=zoom_sp_starter_message["ts"],
+            # )
+        except slack_sdk.errors.SlackApiError as error:
+            logger.error(f"Error sending Zoom prompt to the incident channel {channel_name}: {error}")
+
+    """
     Post prompt for creating Statuspage incident if enabled
     """
     if "statuspage" in config.active.integrations:
-        sp_starter_message_content = return_new_statuspage_incident_message(channel_id)
-        try:
-            sp_starter_message = slack_web_client.chat_postMessage(
-                **sp_starter_message_content,
-                text="",
-            )
-            slack_web_client.pins_add(
-                channel=channel_id,
-                timestamp=sp_starter_message["ts"],
-            )
-        except slack_sdk.errors.SlackApiError as error:
-            logger.error(
-                f"Error sending Statuspage prompt to the incident channel {channel_name}: {error}"
-            )
+        status_page_info = {"enabled": True }
+        zoom_sp_starter_message_content = return_new_statuspage_incident_message_with_zoom(channel_id, zoom_info, status_page_info)
+        if zoom_info.get('enabled', True):
+            try:
+                sp_starter_message = slack_web_client.chat_update(
+                    channel=channel_id,
+                    ts=zoom_sp_starter_message["ts"],
+                    blocks=zoom_sp_starter_message_content["blocks"],
+                    text="",
+                )
+            except slack_sdk.errors.SlackApiError as error:
+                logger.error(
+                    f"Error sending Zoom and Statuspage prompt to the incident channel {channel_name}: {error}"
+                )
+        else:
+            try:
+                sp_starter_message = slack_web_client.chat_postMessage(
+                    **zoom_sp_starter_message_content,
+                    text="",
+                )
+                # slack_web_client.pins_add(
+                #     channel=channel_id,
+                #     timestamp=sp_starter_message["ts"],
+                # )
+            except slack_sdk.errors.SlackApiError as error:
+                logger.error(
+                    f"Error sending Statuspage prompt to the incident channel {channel_name}: {error}"
+                )
         logger.info(f"Sending Statuspage prompt to {channel_name}.")
         # Update incident record with the Statuspage starter message timestamp
         logger.info(
