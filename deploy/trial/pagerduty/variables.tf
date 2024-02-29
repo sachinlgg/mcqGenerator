@@ -1,20 +1,20 @@
 variable "pagerduty_token" {
   description = "Token"
-  default     = "u+N-_9m7WxFvDdNGRySg"
+  default     = "u+X42VLEoXtxzQV7ThPg"
 }
 
 variable "pagerduty_account_email" {
   description = "email"
-  default     = "apd@gooctoplus.com"
+  default     = "apd1@gooctoplus.com"
 }
 
 variable "pagerduty_account_first_name" {
-  description = "email"
+  description = "First Name"
   default     = "A"
 }
 
 variable "pagerduty_account_second_name" {
-  description = "email"
+  description = "Second Name"
   default     = "PD"
 }
 

@@ -16,8 +16,8 @@ services:
       POSTGRES_USER: incident_bot
       POSTGRES_PASSWORD: somepassword
       POSTGRES_PORT: 5432
-      PAGERDUTY_API_TOKEN: 'u+N-_9m7WxFvDdNGRySg'
-      PAGERDUTY_API_USERNAME: 'apd@gooctoplus.com'
+      PAGERDUTY_API_TOKEN: 'u+X42VLEoXtxzQV7ThPg'
+      PAGERDUTY_API_USERNAME: 'apd1@gooctoplus.com'
       STATUSPAGE_API_KEY: 'ef3a8f8ae5bb44e88bf4c667978a0990'
       STATUSPAGE_PAGE_ID: '0cqcvf2hnt1h'
       STATUSPAGE_URL: 'https://gooctoplus1.statuspage.io/'
