@@ -44,25 +44,35 @@ variable "teams" {
       }
     }
     engineering_team = {
-      name    = "Engineering"
+      name    = "Growth Team"
       members = {
         earline = {
-          name  = "Earline Greenholt"
-          email = "125.greenholt.earline@gooctoplus.com"
+          name  = "Rahul"
+          email = "rahul@gooctoplus.com"
           phone = "9021488747"
         }
-        # Add more members as needed
       }
     }
-    # Add more teams as needed
+    authentication_team = {
+      name    = "Authentication Team"
+      members = {
+        earline = {
+          name  = "Sachin"
+          email = "sachin.121@gooctoplus.com"
+          phone = "9021488747"
+        }
+      }
+    }
   }
 }
 
 variable "service_team_mapping" {
   type = map(string)
   default = {
-    "payment service"    = "Engineering",
+    "payment service"    = "Growth Team",
+    "growth and campaign service"    = "Growth Team",
     "devops Service"     = "SRE",
     "Database Service"   = "SRE"
+    "Authentication Service"   = "Authentication Team"
   }
 }
