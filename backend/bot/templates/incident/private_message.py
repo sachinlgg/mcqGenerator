@@ -14,16 +14,29 @@ class PrivateMessage:
                         "type": "plain_text",
                         "text": ":wave: You have been elected as the {} role.".format(
                             role.replace("_", " ").title()
-                        ),
-                    },
+                        )
+                    }
                 },
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": config.active.roles.get(role),
-                    },
-                },
+                        "text": config.active.roles.get(role)
+                    }
+                }
+                # {
+                #     "type": "rich_text",
+                #     "elements": [
+                #         {
+                #             "type": "rich_text_section",
+                #             "elements": [
+                #                 {
+                #                     "type": "text",
+                #                     "text": config.active.roles.get(role)
+                #                 }
+                #             ]
+                #         }
+                #     ]
+                # },
             ],
         }
-
