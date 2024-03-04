@@ -57,8 +57,8 @@ variable "teams" {
       name    = "Authentication Team"
       members = {
         earline = {
-          name  = "Sachin"
-          email = "sachin.121@gooctoplus.com"
+          name  = "Michael"
+          email = "michael@gooctoplus.com"
           phone = "9021488747"
         }
       }
