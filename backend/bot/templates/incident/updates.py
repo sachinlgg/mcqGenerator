@@ -77,9 +77,9 @@ class IncidentUpdate:
 
     @staticmethod
     def public_update(
-        incident_id: str, impacted_resources: str, message: str, timestamp: str
+        incident_id: str, impacted_resources: str, message: str, timestamp: str, status: str 
     ):
-        header = ":warning: Incident Update"
+        header = ":warning::fire_engine: Incident Update :loudspeaker: "
         return [
             {
                 "type": "header",
@@ -91,26 +91,24 @@ class IncidentUpdate:
             {
                 "type": "section",
                 "fields": [
+
                     {
                         "type": "mrkdwn",
-                        "text": f"*Incident:*\n <#{incident_id}>",
+                        "text": f"*Impacted Resources:*\n {impacted_resources}",
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Current Status:*\n {status}",
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Incident Status Message:* \n {message}",
                     },
                     {
                         "type": "mrkdwn",
                         "text": f"*Posted At:*\n {timestamp}",
                     },
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Impacted Resources:*\n {impacted_resources}",
-                    },
                 ],
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Current Status*\n {message}",
-                },
             },
             {
                 "type": "context",

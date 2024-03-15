@@ -9,6 +9,7 @@ from bot.exc import ConfigurationError
 from bot.incident import actions as inc_actions, incident
 from bot.incident.action_parameters import ActionParametersSlack
 from bot.models.incident import db_read_all_incidents
+from bot.models.incident import db_read_open_incidents_sorted
 from bot.scheduler import scheduler
 from bot.shared import tools
 from bot.slack.client import (
@@ -63,7 +64,7 @@ def handle_mention(body, say, logger):
         )
         say(channel=user, text=startup_message)
     elif "lsoi" in message:
-        database_data = db_read_all_incidents()
+        database_data = db_read_open_incidents_sorted()
         resp = incident_list_message(database_data, all=False)
         say(blocks=resp, text="")
     elif "lsai" in message:

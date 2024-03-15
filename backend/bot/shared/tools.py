@@ -33,6 +33,17 @@ def fetch_timestamp_from_time_obj(t: datetime):
     return timezone(application_timezone).localize(t).strftime(timestamp_fmt)
 
 
+
+def find_index_in_obj_list(lst: List, key: Any, value: Any):
+    """Takes a list of dictionaries and returns
+    the index value if key matches.
+    """
+    for i, obj in enumerate(lst):
+        if getattr(obj, key, None) != None and getattr(obj, key, None) == value :
+            return i
+    return -1
+
+
 def find_index_in_list(lst: List, key: Any, value: Any):
     """Takes a list of dictionaries and returns
     the index value if key matches.

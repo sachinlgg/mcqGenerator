@@ -3,6 +3,7 @@ import logging
 
 from bot.models.pg import Incident, Session
 from sqlalchemy import or_
+from sqlalchemy import desc
 from typing import List
 
 logger = logging.getLogger("models.incident")
@@ -17,7 +18,7 @@ def db_read_all_incidents(return_json: bool = False) -> List:
     Return all rows from incidents table
     """
     try:
-        all_incidents = Session.query(Incident)
+        all_incidents = Session.query(Incident).order_by(Incident.created_at)
         all_incidents_list = []
         for inc in all_incidents:
             if return_json:
@@ -33,6 +34,29 @@ def db_read_all_incidents(return_json: bool = False) -> List:
         Session.close()
         Session.remove()
 
+def db_read_open_incidents_sorted(return_json: bool = False, order_aesc: bool = True) -> List:
+    """
+    Return all rows from incidents table
+    """
+    try:
+        order_expression = Incident.created_at if order_aesc else desc(Incident.created_at)
+        all_incidents = Session.query(Incident).filter(
+            Incident.status != "resolved"
+        ).order_by(order_expression)
+        all_incidents_list = []
+        for inc in all_incidents:
+            if return_json:
+                all_incidents_list.append(inc.serialize())
+            else:
+                all_incidents_list.append(inc)
+        return all_incidents_list
+    except Exception as error:
+        logger.error(
+            f"Incident lookup query failed when returning all incidents: {error}"
+        )
+    finally:
+        Session.close()
+        Session.remove()
 
 def db_read_open_incidents() -> List:
     """

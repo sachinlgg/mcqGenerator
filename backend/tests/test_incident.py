@@ -629,30 +629,25 @@ class TestIncidentManagement:
             impacted_resources="api",
             message="foobar",
             timestamp=timestamp,
+            status = "Investigating"
         ) == [
             {
                 "text": {
-                    "text": ":warning: Incident Update",
+                    "text": ":warning::fire_engine: Incident Update :loudspeaker: ",
                     "type": "plain_text",
                 },
                 "type": "header",
             },
             {
                 "fields": [
-                    {"text": "*Incident:*\n <#mock>", "type": "mrkdwn"},
+                    {"text": "*Impacted Resources:*\n api", "type": "mrkdwn"},
+                    {"text": "*Current Status:*\n Investigating", "type": "mrkdwn"},
+                    {"text": "*Incident Status Message:* \n foobar", "type": "mrkdwn"},
                     {
                         "text": f"*Posted At:*\n {timestamp}",
                         "type": "mrkdwn",
                     },
-                    {"text": "*Impacted Resources:*\n api", "type": "mrkdwn"},
                 ],
-                "type": "section",
-            },
-            {
-                "text": {
-                    "text": "*Current Status*\n foobar",
-                    "type": "mrkdwn",
-                },
                 "type": "section",
             },
             {

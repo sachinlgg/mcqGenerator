@@ -2,6 +2,7 @@ import config
 import logging
 import variables
 import random
+import time
 
 
 from bot.audit.log import read as read_logs, write as write_log
@@ -15,6 +16,7 @@ from bot.models.incident import (
     db_read_incident,
     db_update_incident_last_update_sent_col,
     db_update_jira_issues_col,
+    db_read_open_incidents_sorted,
 )
 from bot.models.pager import read_pager_auto_page_targets
 from bot.shared import tools
@@ -425,7 +427,12 @@ def open_modal(ack, body, client):
     ack()
 
     # Build blocks for open incidents
-    database_data = db_read_open_incidents()
+    database_data = db_read_open_incidents_sorted(return_json=False, order_aesc=False)
+
+    response = open_incident_general_update_modal_auto_select_incident(ack,body,client,database_data)
+    response_state = parse_modal_values(response)
+    auto_select_current_channel_id = response_state['incident_update_modal_select_incident_auto_select_shortcut']
+    index = tools.find_index_in_obj_list(database_data,"channel_id",auto_select_current_channel_id)
     view = {
         "type": "modal",
         # View identifier
@@ -438,9 +445,9 @@ def open_modal(ack, body, client):
                 "text": {
                     "type": "mrkdwn",
                     "text": "This will send a formatted, timestamped message "
-                    + "to the public incidents channel to provide an update "
-                    + "on the status of an incident. Use this to keep those "
-                    + "outside the incident process informed.",
+                            + "to the public incidents channel to provide an update "
+                            + "on the status of an incident. Use this to keep those "
+                            + "outside the incident process informed.",
                 },
             },
             {
@@ -479,6 +486,22 @@ def open_modal(ack, body, client):
                         for inc in database_data
                         if inc.status != "resolved"
                     ],
+                    "initial_option": {
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"<#{auto_select_current_channel_id}>",
+                            "emoji": True,
+                        },
+                        "value": f"<#{auto_select_current_channel_id}>",
+                    } if index != -1
+                    else {
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"<#{database_data[0].channel_id}>",
+                            "emoji": True,
+                        },
+                        "value": f"<#{database_data[0].channel_id}>",
+                    }
                 },
             },
             {
@@ -525,10 +548,97 @@ def open_modal(ack, body, client):
             },
         ],
     }
-    client.views_open(
+    if len(database_data) == 0:
+        del view["submit"]
+    client.views_update(view_id=response["view"]["id"],hash=response["view"]["hash"],view= view)
+
+
+def open_incident_general_update_modal_auto_select_incident (ack, body, client,database_data):
+    ack()
+
+    view = {
+        "type": "modal",
+        # View identifier
+        "callback_id": "open_incident_general_update_modal",
+        "title": {"type": "plain_text", "text": "Provide incident update"},
+        "submit": {"type": "plain_text", "text": "Submit"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "This will send a formatted, timestamped message "
+                            + "to the public incidents channel to provide an update "
+                            + "on the status of an incident. Use this to keep those "
+                            + "outside the incident process informed.",
+                },
+            },
+            {
+                "type": "section",
+                "block_id": "open_incident_general_update_modal_incident_channel_auto_select",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Associated Incident:"
+                },
+                "accessory": {
+                    "action_id": "incident_update_modal_select_incident_auto_select_shortcut",
+                    "type": "conversations_select",
+                    "default_to_current_conversation": True,
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select an ongoing incident..."
+                    }
+                }
+            },
+            {
+                "type": "input",
+                "block_id": "open_incident_general_update_modal_impacted_resources",
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "impacted_resources",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "e.g. API, Authentication, Dashboards",
+                    },
+                },
+                "label": {
+                    "type": "plain_text",
+                    "text": "Impacted Resources:",
+                },
+            },
+            {
+                "type": "input",
+                "block_id": "open_incident_general_update_modal_update_msg",
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "message",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "A brief message to include with this update.",
+                    },
+                },
+                "label": {
+                    "type": "plain_text",
+                    "text": "Message to Include:",
+                },
+            },
+        ]
+        if len(database_data) != 0
+        else [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "There are currently no open incidents.",
+                },
+            },
+        ],
+    }
+    response = client.views_open(
         trigger_id=body["trigger_id"],
         view=view,
     )
+    return response
 
 
 @app.view("open_incident_general_update_modal")
@@ -545,16 +655,20 @@ def handle_submission(ack, body, client):
     for character in "#<>":
         channel_id = channel_id.replace(character, "")
     try:
+        incident_data = db_read_incident(channel_id=channel_id)
+        status = incident_data.status
         client.chat_postMessage(
+            thread_ts=incident_data.dig_message_ts,
             channel=variables.digest_channel_id,
             blocks=IncidentUpdate.public_update(
                 incident_id=channel_id,
                 impacted_resources=parsed.get("impacted_resources"),
                 message=parsed.get("message"),
                 timestamp=tools.fetch_timestamp(),
+                status = status.capitalize()
             ),
-            text="Incident update for incident <#{}>: {}".format(
-                channel_id, parsed.get("message")
+            text="Incident update for incident <#{}>: Message: {} Impacted Resources: {}".format(
+                channel_id, parsed.get("message"),parsed.get("impacted_resources")
             ),
         )
     except Exception as error:
@@ -570,6 +684,7 @@ def handle_submission(ack, body, client):
 Paging
 """
 
+    
 
 @app.shortcut("open_incident_bot_pager")
 def open_modal(ack, body, client):
@@ -580,6 +695,8 @@ def open_modal(ack, body, client):
         from bot.pagerduty import api as pd_api
 
         database_data = db_read_open_incidents()
+
+        
         blocks = [
             {
                 "type": "section",
@@ -695,55 +812,73 @@ def open_modal(ack, body, client):
                     }
                 ]
             },
-            {
-                "type": "section",
-                "block_id": "incident_bot_pager_incident_select",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "*Specify the Incident to Escalate?*",
-                },
-                "accessory": {
-                    "action_id": "update_incident_bot_pager_selected_incident",
-                    "type": "static_select",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": "Incident...",
-                    },
-                    "options": [
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": "None",
-                                "emoji": True,
-                            },
-                            "value": "none",
-                        }
-                        if len(database_data) == 0
-                        else {
-                            "text": {
-                                "type": "plain_text",
-                                "text": inc.channel_name,
-                                "emoji": True,
-                            },
-                            "value": f"{inc.channel_name}/{inc.channel_id}",
-                        }
-                        for inc in database_data
-                        if inc.status != "resolved"
-                    ],
-                },
-            },
-            {
-                "type": "context",
-                "block_id": "incident_bot_pager_incident_select_context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": "Choose among ongoing open incidents to escalate using PagerDuty."
-                    }
-                ]
-            },
         ]
-    client.views_open(
+        incident_choose_block = {
+            "type": "section",
+            "block_id": "incident_bot_pager_incident_select",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Specify the Incident to Escalate?*",
+            },
+            "accessory": {
+                "action_id": "update_incident_bot_pager_selected_incident",
+                "type": "static_select",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "Incident...",
+                },
+                "options": [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": "None",
+                            "emoji": True
+                        },
+                        "value": "none"
+                    }
+                ] if not database_data else [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"#{inc.channel_name}",
+                            "emoji": True
+                        },
+                        "value": f"{inc.channel_name}/{inc.channel_id}"
+                    }
+                    for inc in database_data if inc.status != "resolved"
+                ],
+            },
+        }
+        incident_context_block ={
+            "type": "context",
+            "block_id": "incident_bot_pager_incident_select_context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "Choose among ongoing open incidents to escalate using PagerDuty."
+                }
+            ]
+        }
+        incident_auto_choose_block = {
+            "type": "section",
+            "block_id": "incident_bot_pager_incident_auto_select",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Specify the Incident to Escalate?*"
+            },
+            "accessory": {
+                "action_id": "incident_bot_pager_incident_auto_select_shortcut",
+                "type": "conversations_select",
+                "default_to_current_conversation": True,
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "Incident..."
+                }
+            }
+        }
+        blocks.append(incident_auto_choose_block)
+        blocks.append(incident_context_block)
+        response = client.views_open(
         # Pass a valid trigger_id within 3 seconds of receiving it
         trigger_id=body["trigger_id"],
         # View payload
@@ -767,11 +902,48 @@ def open_modal(ack, body, client):
                 },
             ],
         },
-    )
+        )
+        response_state = parse_modal_values(response)
+        auto_select_current_channel_id = response_state['incident_bot_pager_incident_auto_select_shortcut']
+        index = tools.find_index_in_obj_list(database_data,"channel_id",auto_select_current_channel_id)
+        if index != -1:
+            auto_select_current_channel= database_data[index].channel_name
+            incident_choose_block["accessory"]["initial_option"] = {
+                "text": {
+                    "type": "plain_text",
+                    "text": f"#{auto_select_current_channel}",
+                },
+                "value": f"{auto_select_current_channel}/{auto_select_current_channel_id}",
+            }
+        blocks.pop()
+        blocks.pop()
+        blocks.append(incident_choose_block)
+        blocks.append(incident_context_block)
+        client.views_update(view_id=response["view"]["id"],hash=response["view"]["hash"],view={
+            "type": "modal",
+            "callback_id": "incident_bot_pager_modal",
+            "title": {
+                "type": "plain_text",
+                "text": "Escalate",
+            },
+            "blocks": blocks
+            if "pagerduty" in config.active.integrations
+            else [
+                {
+                    "type": "section",
+                    "block_id": "incident_bot_pager_disabled",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "The PagerDuty integration is not currently enabled.",
+                    },
+                },
+            ],
+        })
+
 
 
 @app.action("update_incident_bot_pager_selected_incident")
-def update_modal(ack, body, client):
+def update_modal_update_incident_bot_pager_selected_incident(ack, body, client):
     # Acknowledge the button request
     ack()
 
@@ -920,10 +1092,20 @@ def handle_static_action(ack, body, logger,client):
     logger.debug(body)
 
 @app.action("update_incident_bot_pager_selected_priority")
-def handle_static_action(ack, body, logger):
-    ack()
-    logger.debug(body)
+def handle_static_action(ack, body, logger,client):
 
+    try:
+        selected_incident = body["view"]["state"]["values"]["incident_bot_pager_incident_select"]["update_incident_bot_pager_selected_incident"]["selected_option"]
+        if selected_incident != None:
+            ack()
+            time.sleep(3)
+            update_modal_update_incident_bot_pager_selected_incident(ack, body, client)
+        else:
+            ack()
+            logger.debug(body)
+    except:
+        ack()
+        logger.debug(body)
 
 @app.view("incident_bot_pager_modal")
 def handle_submission(ack, body, say, view):
@@ -1004,11 +1186,87 @@ def open_modal(ack, body, client):
     # Acknowledge the command request
     ack()
 
+    # Handle Message Shortcut Directly 
+    if body.get("channel") != None and body.get("message") != None:
+        incident_channel_id = body.get("channel").get("id")
+        incident_channel_name = body.get("channel").get("name") 
+        incident_channel_name_id = f"{incident_channel_name}/{incident_channel_id}"
+        handle_open_incident_bot_timeline_message_shortcut(ack,body,client,incident_channel_name_id)
+        return
+        
+    
     # Format incident list
-    database_data = db_read_open_incidents()
+    database_data = db_read_open_incidents_sorted(return_json=False, order_aesc=False)
 
-    # Call views_open with the built-in client
-    client.views_open(
+    response = open_incident_bot_timeline_auto_select_incident(ack,body,client,database_data)
+    response_state = parse_modal_values(response)
+    auto_select_current_channel_id = response_state['update_incident_bot_timeline_auto_selected_incident']
+    index = tools.find_index_in_obj_list(database_data,"channel_id",auto_select_current_channel_id)
+    response_update = client.views_update(view_id=response["view"]["id"],hash=response["view"]["hash"],view={
+        "type": "modal",
+        "callback_id": "incident_bot_timeline_modal",
+        "title": {"type": "plain_text", "text": "Incident timeline"},
+        "submit": {"type": "plain_text", "text": "Update"},
+        "blocks": [
+            {
+                "type": "section",
+                "block_id": "incident_bot_timeline_incident_select",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Choose an incident to add an event to:",
+                },
+                "accessory": {
+                    "action_id": "update_incident_bot_timeline_selected_incident",
+                    "type": "static_select",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Incident...",
+                    },
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": inc.channel_name,
+                                "emoji": True,
+                            },
+                            "value": f"{inc.channel_name}/{inc.channel_id}",
+                        }
+                        for inc in database_data
+                        if inc.status != "resolved"
+                    ],
+                    "initial_option": {
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"{database_data[index].channel_name}",
+                            "emoji": True,
+                        },
+                        "value": f"{database_data[index].channel_name}/{database_data[index].channel_id}",
+                    } if index != -1
+                    else {
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"{database_data[0].channel_name}",
+                            "emoji": True,
+                        },
+                        "value": f"{database_data[0].channel_name}/{database_data[0].channel_id}",
+                    }
+                },
+            }
+            if len(database_data) != 0
+            else {
+                "type": "section",
+                "block_id": "no_incidents",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "There are currently no open incidents.\n\nYou can only add timeline events to open incidents.",
+                },
+            }
+        ],
+    },)
+
+def open_incident_bot_timeline_auto_select_incident(ack,body,client,database_data):
+    ack()
+    response = client.views_open(
         # Pass a valid trigger_id within 3 seconds of receiving it
         trigger_id=body["trigger_id"],
         # View payload
@@ -1019,31 +1277,20 @@ def open_modal(ack, body, client):
             "blocks": [
                 {
                     "type": "section",
-                    "block_id": "incident_bot_timeline_incident_select",
+                    "block_id": "incident_bot_timeline_incident_auto_select",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "Choose an incident to add an event to:",
+                        "text": "Choose an incident to add an event to:"
                     },
                     "accessory": {
-                        "action_id": "update_incident_bot_timeline_selected_incident",
-                        "type": "static_select",
+                        "action_id": "update_incident_bot_timeline_auto_selected_incident",
+                        "type": "conversations_select",
+                        "default_to_current_conversation": True,
                         "placeholder": {
                             "type": "plain_text",
-                            "text": "Incident...",
-                        },
-                        "options": [
-                            {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": inc.channel_name,
-                                    "emoji": True,
-                                },
-                                "value": f"{inc.channel_name}/{inc.channel_id}",
-                            }
-                            for inc in database_data
-                            if inc.status != "resolved"
-                        ],
-                    },
+                            "text": "Incident..."
+                        }
+                    }
                 }
                 if len(database_data) != 0
                 else {
@@ -1057,17 +1304,17 @@ def open_modal(ack, body, client):
             ],
         },
     )
+    return response
 
 
-@app.action("update_incident_bot_timeline_selected_incident")
-def update_modal(ack, body, client):
-    # Acknowledge the button request
-    ack()
-
-    parsed = parse_modal_values(body)
-    incident = parsed.get("update_incident_bot_timeline_selected_incident")
+def incident_bot_timeline_selected_incident_blocks(incident: str):
     incident_channel_name = incident.split("/")[0]
-    current_logs = read_logs(incident_channel_name)
+    timestamp_datetime = datetime.strptime(tools.fetch_timestamp(short=True), "%d/%m/%Y %H:%M:%S %Z")
+    initial_time = timestamp_datetime.strftime("%H:%M")
+    current_date = timestamp_datetime.strftime("%Y-%m-%d")
+    application_timezone = "Europe/London" if config.active.options.get("timezone") == "UTC" else config.active.options.get("timezone")
+    current_audit_logs = read_logs(incident_channel_name)
+    current_logs = sorted(current_audit_logs, key=lambda x: x['ts'])
     base_blocks = [
         {
             "type": "header",
@@ -1082,7 +1329,7 @@ def update_modal(ack, body, client):
             "text": {
                 "type": "mrkdwn",
                 "text": "Add a new event to the incident's timeline. This will "
-                + "be automatically added to the RCA when the incident is resolved.\n",
+                        + "be automatically added to the RCA when the incident is resolved.\n",
             },
         },
         {"type": "divider"},
@@ -1090,13 +1337,20 @@ def update_modal(ack, body, client):
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": ":page_with_curl: Existing Entries",
+                "text": ":page_with_curl: Existing Entries \n",
             },
         },
     ]
     for log in current_logs:
         base_blocks.extend(
             [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": log["log"],
+                    },
+                },
                 {
                     "type": "context",
                     "elements": [
@@ -1106,13 +1360,6 @@ def update_modal(ack, body, client):
                             "emoji": True,
                         }
                     ],
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": log["log"],
-                    },
                 },
                 {"type": "divider"},
             ],
@@ -1131,6 +1378,7 @@ def update_modal(ack, body, client):
                 "block_id": "date",
                 "element": {
                     "type": "datepicker",
+                    "initial_date": current_date,
                     "placeholder": {
                         "type": "plain_text",
                         "text": "Select a date",
@@ -1138,13 +1386,15 @@ def update_modal(ack, body, client):
                     },
                     "action_id": "update_incident_bot_timeline_date",
                 },
-                "label": {"type": "plain_text", "text": "Date", "emoji": True},
+                "label": {"type": "plain_text", "text": "Choose Date", "emoji": True},
             },
             {
                 "type": "input",
                 "block_id": "time",
                 "element": {
                     "type": "timepicker",
+                    "timezone": application_timezone,
+                    "initial_time": initial_time,
                     "placeholder": {
                         "type": "plain_text",
                         "text": "Select time",
@@ -1152,7 +1402,7 @@ def update_modal(ack, body, client):
                     },
                     "action_id": "update_incident_bot_timeline_time",
                 },
-                "label": {"type": "plain_text", "text": "Time", "emoji": True},
+                "label": {"type": "plain_text", "text": "Adjust Time", "emoji": True},
             },
             {
                 "type": "input",
@@ -1165,7 +1415,17 @@ def update_modal(ack, body, client):
             },
         ]
     )
+    return base_blocks
 
+@app.action("update_incident_bot_timeline_selected_incident")
+def update_modal_incident_bot_timeline_selected_incident(ack, body, client):
+    # Acknowledge the button request
+    ack()
+
+    parsed = parse_modal_values(body)
+    incident = parsed.get("update_incident_bot_timeline_selected_incident")
+
+    base_blocks= incident_bot_timeline_selected_incident_blocks(incident)
     # Call views_update with the built-in client
     client.views_update(
         # Pass the view_id
@@ -1200,6 +1460,43 @@ def handle_static_action(ack, body, logger):
     ack()
     logger.debug(body)
 
+
+@app.view("incident_bot_timeline_modal")
+def handle_submission(ack, body, client, view):
+    ack()
+    parsed = parse_modal_values(body)
+    incident = parsed.get("update_incident_bot_timeline_selected_incident")
+    base_blocks= incident_bot_timeline_selected_incident_blocks(incident)
+    # Call views_update with the built-in client
+    client.views_open(
+        # # Pass the view_id
+        trigger_id=body["trigger_id"],
+        view={
+            "type": "modal",
+            "callback_id": "incident_bot_timeline_modal_add",
+            "title": {"type": "plain_text", "text": "Incident timeline"},
+            "submit": {"type": "plain_text", "text": "Add"},
+            "blocks": base_blocks,
+        },
+    )
+
+
+def handle_open_incident_bot_timeline_message_shortcut(ack,body,client,incident_channel_name_id: str):
+    ack()
+    base_blocks= incident_bot_timeline_selected_incident_blocks(incident_channel_name_id)
+    client.views_open(
+        # # Pass the view_id
+        trigger_id=body["trigger_id"],
+        view={
+            "type": "modal",
+            "callback_id": "incident_bot_timeline_modal_add",
+            "title": {"type": "plain_text", "text": "Incident timeline"},
+            "submit": {"type": "plain_text", "text": "Add"},
+            "blocks": base_blocks,
+        },
+    )
+    return
+    
 
 @app.view("incident_bot_timeline_modal_add")
 def handle_submission(ack, body, say, view):
