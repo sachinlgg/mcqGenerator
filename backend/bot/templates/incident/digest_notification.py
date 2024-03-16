@@ -23,6 +23,30 @@ class IncidentChannelDigestNotification:
                     "incident_description"
                 )
             )
+
+        inc_button_action_elements = [
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Postmortem Library",
+                },
+                "url": config.active.links.get(
+                    "incident_postmortems"
+                ),
+                "action_id": "incident.incident_postmortem_link",
+            }
+        ]
+        if not incident_channel_details.get("private_channel"):
+            inc_button_action_elements.insert(0,{
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "War Room",
+                },
+                "url": conference_bridge,
+                "action_id": "incident.click_conference_bridge_link",
+            })
         return {
             "channel": f"{config.active.digest_channel}",
             "blocks": [
@@ -72,34 +96,13 @@ class IncidentChannelDigestNotification:
                     "text": {
                         "type": "mrkdwn",
                         "text": "A new incident has been declared. "
-                        + "Please use the buttons here to participate.",
+                        + "Please join the channel here to participate.",
                     },
                 },
                 {
                     "type": "actions",
                     "block_id": "incchannelbuttons",
-                    "elements": [
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "War Room",
-                            },
-                            "url": conference_bridge,
-                            "action_id": "incident.click_conference_bridge_link",
-                        },
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Postmortem Library",
-                            },
-                            "url": config.active.links.get(
-                                "incident_postmortems"
-                            ),
-                            "action_id": "incident.incident_postmortem_link",
-                        },
-                    ],
+                    "elements": inc_button_action_elements,
                 },
             ],
         }
@@ -114,6 +117,7 @@ class IncidentChannelDigestNotification:
         conference_bridge: str,
         channel_name: str = 'default_channel_name',
         user: str = 'U05T9BLKJ07',
+        private_channel: bool = False,
     ):
         incident_reacji_header = (
             ":warning::lock::fire_engine: {}".format(incident_description)
@@ -137,6 +141,30 @@ class IncidentChannelDigestNotification:
         else:
             header = f"{incident_reacji_header}"
             message = "This incident is in progress. Current status is listed here. Join the channel for more information."
+
+        inc_button_action_elements = [
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Postmortem Library",
+                },
+                "url": config.active.links.get(
+                    "incident_postmortems"
+                ),
+                "action_id": "incident.incident_postmortem_link",
+            }
+        ]
+        if not private_channel:
+            inc_button_action_elements.insert(0,{
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "War Room",
+                },
+                "url": conference_bridge,
+                "action_id": "incident.click_conference_bridge_link",
+            })
         return [
             {
                 "type": "header",
@@ -187,25 +215,6 @@ class IncidentChannelDigestNotification:
             {
                 "type": "actions",
                 "block_id": "incchannelbuttons",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "War Room",
-                        },
-                        "url": conference_bridge,
-                        "action_id": "incident.click_conference_bridge_link",
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Postmortem Library",
-                        },
-                        "url": config.active.links.get("incident_postmortems"),
-                        "action_id": "incident.incident_postmortem_link",
-                    },
-                ],
+                "elements": inc_button_action_elements,
             },
         ]

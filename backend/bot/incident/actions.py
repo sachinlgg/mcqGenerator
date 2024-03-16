@@ -384,6 +384,7 @@ async def set_status(
     incident_data = db_read_incident(channel_id=action_parameters.channel_details["id"])
     incident_details_info = {"incident_data": incident_data}
     channel_name = incident_data.channel_name
+    is_private_incident = action_parameters.channel_details.get("name",channel_name) != channel_name
     action_value = action_parameters.actions["selected_option"]["value"]
     user = action_parameters.user_details["id"]
     reporter = incident_data.roles['incident_reporter'] if incident_data.roles and 'incident_reporter' in incident_data.roles else user
@@ -645,7 +646,8 @@ async def set_status(
                 severity=incident_data.severity,
                 conference_bridge=incident_data.conference_bridge,
                 channel_name = channel_name,
-                user = reporter
+                user = reporter,
+                private_channel = is_private_incident,
             ),
             text="",
         )
@@ -773,6 +775,7 @@ async def set_severity(
     incident_data = db_read_incident(channel_id=action_parameters.channel_details["id"])
     action_value = action_parameters.actions["selected_option"]["value"]
     channel_name = incident_data.channel_name
+    is_private_incident = action_parameters.channel_details.get("name",channel_name) != channel_name
     user = action_parameters.user_details["id"]
     reporter = incident_data.roles['incident_reporter'] if incident_data.roles and 'incident_reporter' in incident_data.roles else user
 
@@ -790,6 +793,7 @@ async def set_severity(
                 conference_bridge=incident_data.conference_bridge,
                 channel_name = channel_name,
                 user = reporter,
+                private_channel = is_private_incident,
             ),
         )
     except slack_sdk.errors.SlackApiError as error:

@@ -211,7 +211,7 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "A new incident has been declared. Please use the buttons here to participate.",
+                        "text": "A new incident has been declared. Please join the channel here to participate.",
                     },
                 },
                 {
