@@ -543,6 +543,11 @@ def handle_static_action(ack, body, logger):
     ack()
 
 
+@app.action("incident_catch_me_up_modal_select_incident")
+def handle_static_action(ack, body, logger):
+    logger.debug(body)
+    ack()
+
 @app.action("open_rca")
 def handle_static_action(ack, body, logger):
     logger.debug(body)

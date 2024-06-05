@@ -93,6 +93,7 @@ class Incident(Base, MutableBase, Serializer):
     conference_bridge = Column(String())
     pagerduty_incidents = Column(MutableList.as_mutable(JSONB))
     jira_issues = Column(MutableList.as_mutable(JSONB))
+    rca_channel_id = Column(VARCHAR(100))
 
     def serialize(self):
         d = Serializer.serialize(self)

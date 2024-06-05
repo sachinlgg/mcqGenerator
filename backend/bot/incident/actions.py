@@ -17,6 +17,8 @@ from bot.models.incident import (
     db_update_incident_status_col,
     db_update_incident_severity_col,
     db_update_incident_updated_at_col,
+    db_update_jira_issues_col,
+    db_update_rca_channel_id,
 )
 from bot.scheduler import scheduler
 from bot.shared import tools
@@ -28,6 +30,7 @@ from bot.slack.client import (
     slack_workspace_id,
 )
 from bot.chatgpt.api import ChatGPTApi
+from bot.jira.issue import JiraIssue
 
 from bot.slack.incident_logging import read as read_incident_pinned_items
 from bot.templates.incident.digest_notification import (
@@ -37,7 +40,8 @@ from bot.templates.incident.resolution_message import IncidentResolutionMessage
 from bot.templates.incident.updates import IncidentUpdate
 from bot.templates.incident.user_dm import IncidentUserNotification
 from bot.templates.incident.private_message import PrivateMessage
-from typing import Any, Dict
+
+from typing import Any, Dict, List
 import re
 import random
 
@@ -425,6 +429,10 @@ async def set_status(
                 return
         # Create rca channel
         rca_channel_name = f"{incident_data.incident_id}-rca"
+        rcaChannelDetails = {
+            "id": "",
+            "name": rca_channel_name,
+        }
         try:
             rca_channel = slack_web_client.conversations_create(name=rca_channel_name)
             # Log the result which includes information like the ID of the conversation
@@ -436,13 +444,28 @@ async def set_status(
                 event=f"RCA channel was created.",
                 content=rca_channel["channel"]["id"],
             )
+            rcaChannelDetails = {
+                "id": rca_channel["channel"]["id"],
+                "name": rca_channel["channel"]["name"],
+            }
+            db_update_rca_channel_id(rca_channel["channel"]["id"],incident_data.incident_id)
         except slack_sdk.errors.SlackApiError as error:
-            logger.error(f"Error creating rca channel: {error}")
+            if error.response['error'] == 'name_taken':
+                logger.warning(f"Channel name '{rca_channel_name}' is already taken. Fetching existing channel details.")
+                if incident_data.rca_channel_id:
+                    rca_channel_id = incident_data.rca_channel_id
+                else:
+                    rca_event_log = log.read_rca_created_event_content(incident_id=incident_data.incident_id)
+                    rca_channel_id = rca_event_log["rca_channel_id"]
+                db_update_rca_channel_id(rca_channel_id,incident_data.incident_id)
+                rcaChannelDetails = {
+                    "id": rca_channel_id,
+                    "name": rca_channel_name,
+                }
+            else:
+                logger.error(f"Error creating rca channel: {error}")
         # Invite incident commander and technical lead if they weren't empty
-        rcaChannelDetails = {
-            "id": rca_channel["channel"]["id"],
-            "name": rca_channel["channel"]["name"],
-        }
+
         incident_details_info["rcaChannelDetails"] = rcaChannelDetails
         # We want real user names to tag in the rca doc
         actual_user_names = []
@@ -577,6 +600,18 @@ async def set_status(
                         {"type": "divider"},
                     ]
                 )
+                try:
+                    if (
+                            config.active.integrations.get("atlassian")
+                                    .get("jira")
+                                    .get("auto_create_action_item")
+                    ):
+                        incident_actions_items_list= await generate_incident_action_items_jira_tickets(incident_preventive_actions)
+                        await create_automated_jira_action_items(incident_actions_items_list,incident_details_info)
+                    else:
+                        logger.info(f" Auto Action Items in Jira Disabled for {channel_name}")
+                except Exception as error:
+                    logger.error(f"Error in generating Auto Action Items in Jira for: {error}")
         else:
             rca_boilerplate_message_blocks.extend(
                 [
@@ -692,6 +727,9 @@ async def set_status(
         )
     except Exception as error:
         logger.fatal(f"Error updating entry in database: {error}")
+    
+    
+        
 
     # See if there's a scheduled reminder job for the incident and delete it if so
     if action_value == "resolved":
@@ -916,7 +954,7 @@ def get_incident_slack_thread(channel_id: str):
     try:
         # Retrieve incident data from the database
         incident_data = db_read_incident(channel_id=channel_id)
-        logger.info(f"Generating incident summary for {incident_data.channel_name}.")
+        logger.info(f"Fetches and formats the Slack channel history for {incident_data.channel_name}.")
 
         # Retrieve and format the channel history
         channel_id = incident_data.channel_id
@@ -992,7 +1030,7 @@ async def generate_incident_rca(channel_id: str, channel_history: str):
 
     try:
         logger.info(f"Generating incident rca for {channel_id}.")
-        incident_rca = await ChatGPTApi().generate_incident_summary(channel_history)
+        incident_rca = await ChatGPTApi().generate_incident_rca(channel_history)
         logger.info(f"Incident rca generated via GPT: {incident_rca}")
 
     except Exception as error:
@@ -1046,6 +1084,52 @@ async def generate_incident_preventive_actions(channel_id: str, channel_history:
         logger.error(f"Error generating incident preventive actions for {channel_id}: {error}")
 
     return incident_preventive_actions
+
+async def generate_incident_action_items_jira_tickets(incident_action_items: str):
+    """
+    Use ChatGPT to create Jira tickets from immediate action items list
+
+    Parameters:
+    - incident_immediate_actions (str): The generated incident immediate actions.
+
+    Returns:
+    - jira_ticket_contract (list): A list of immediate action items taken during the incident in contract of Jira.
+    """
+    jira_ticket_contract = []
+
+    try:
+        logger.info(f"Generating Jira Tickets of actions Items for {incident_action_items} ")
+        jira_ticket_contract = await ChatGPTApi().generate_actions_item_jira_tickets(incident_action_items)
+        logger.info(f"Incident action items generated via GPT in contract of Jira: {incident_action_items}")
+
+    except Exception as error:
+        logger.error(f"Error Generating Jira Tickets of immediate actions for {incident_action_items}: {error}")
+
+    return jira_ticket_contract
+
+async def generate_catch_me_on_incident(channel_id: str, channel_history: str):
+    """
+    Generate catch me on incident based on Slack channel history using ChatGPT.
+
+    Parameters:
+    - channel_id (str): The unique identifier of the Slack channel.
+    - channel_history (str): The history of the Slack channel related to the incident.
+
+    Returns:
+    - catch_me_on_incident (str): The generated catch me on incident summary.
+    """
+    catch_me_on_incident = ""
+
+    try:
+        logger.info(f"Generating catch me on incident for {channel_id}.")
+        catch_me_on_incident = await ChatGPTApi().generate_catch_me_on_incident(channel_history)
+        logger.info(f"Catch me on Incident generated via GPT: {catch_me_on_incident}")
+
+    except Exception as error:
+        logger.error(f"Error generating Catch me on Incident for {channel_id}: {error}")
+
+    return catch_me_on_incident
+
 def remove_bot_lines(channel_history):
     """
     Remove lines containing 'Octo' from a channel history string.
@@ -1059,10 +1143,88 @@ def remove_bot_lines(channel_history):
     # Split the input string into lines
     lines = channel_history.split('\n')
 
-    # Filter lines that do not contain 'Octo'
-    filtered_lines = [line for line in lines if 'Octo' not in line]
+    # Include lines that contain either 'Octo' or 'Bot'
+    filtered_lines = [line for line in lines if 'Octo' not in line and 'Bot' not in line]
+
+
 
     # Join the filtered lines to create the modified channel history
     modified_history = '\n'.join(filtered_lines)
 
     return modified_history
+
+async def create_automated_jira_action_items(incident_immediate_actions_list: List[Dict[str, str]], incident_details_info: dict):
+
+    try:
+        channel_id = incident_details_info["incident_data"].channel_id
+        logger.info(f"Generating Auto Action Items in Jira for Channel {channel_id}")
+        for immediate_actions_ticket in incident_immediate_actions_list:
+            resp = JiraIssue(
+                incident_id=channel_id,
+                description=immediate_actions_ticket.get("description"),
+                issue_type="Task",
+                priority="high",
+                summary=immediate_actions_ticket.get("summary"),
+            ).new()
+            issue_link = "{}/browse/{}".format(config.atlassian_api_url, resp.get("key"))
+            db_update_jira_issues_col(channel_id=channel_id, issue_link=issue_link)
+            try:
+                resp = slack_web_client.chat_postMessage(
+                    channel=channel_id,
+                    blocks=[
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "A Jira issue has been created for this incident.",
+                            },
+                        },
+                        {"type": "divider"},
+                        {
+                            "type": "section",
+                            "fields": [
+                                {
+                                    "type": "mrkdwn",
+                                    "text": "*Key:* {}".format(resp.get("key")),
+                                },
+                                {
+                                    "type": "mrkdwn",
+                                    "text": "*Summary:* {}".format(
+                                        immediate_actions_ticket.get("summary")
+                                    ),
+                                },
+                                {
+                                    "type": "mrkdwn",
+                                    "text": "*Priority:* High",
+                                },
+                                {
+                                    "type": "mrkdwn",
+                                    "text": "*Type:* Task",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "actions",
+                            "block_id": "jira_view_issue",
+                            "elements": [
+                                {
+                                    "type": "button",
+                                    "action_id": "jira.view_issue",
+                                    "style": "primary",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "View Issue",
+                                    },
+                                    "url": issue_link,
+                                },
+                            ],
+                        },
+                    ],
+                    text="A Jira issue has been created for this incident: {}".format(
+                        resp.get("self")
+                    ),
+                )
+            except Exception as error:
+                logger.error(f"Error sending Jira issue message for {incident_id}: {error}")
+    except Exception as error:
+        logger.error(f"Error in generating Auto Action Items in Jira for Channel {channel_id}: {error}")        

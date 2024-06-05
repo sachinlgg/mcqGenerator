@@ -71,6 +71,7 @@ integrations:
       parent: Postmortems
     jira:
       project: SRE
+      auto_create_action_item: true
       labels:
         - incident-management
   # Simply provide an empty dict to enable PagerDuty

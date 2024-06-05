@@ -30,6 +30,10 @@ features:
       type: global
       callback_id: open_incident_bot_timeline
       description: Octo Allows you to Visualize and manage an incident's timeline.
+    - name: Catch Me On Incident
+        type: global
+        callback_id: open_incident_catch_me_up_modal
+        description: Know whats going in Incident via Octo.
 oauth_config:
   scopes:
     user:

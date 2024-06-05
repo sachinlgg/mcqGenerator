@@ -211,6 +211,11 @@ class Configuration:
                                         "type": "string",
                                         "empty": False,
                                     },
+                                    "auto_create_action_item": {
+                                        "required": False,
+                                        "type": "boolean",
+                                        "empty": False,
+                                    },
                                     "labels": {
                                         "required": True,
                                         "type": "list",

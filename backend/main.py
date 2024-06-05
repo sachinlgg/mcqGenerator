@@ -144,6 +144,8 @@ def startup_tasks():
         if ChatGPTApi().test() is None:
             logger.fatal("Could not verify ChatGpt Integrations in the project Check CHATGPT_API_KEY")
             sys.exit(1)
+        if ChatGPTApi().test_tickets() is None:
+            logger.error("Immediate Action Item Auto Jira Ticket is not working ")
         logger.info(f"chat gpt integrations found")
 
 

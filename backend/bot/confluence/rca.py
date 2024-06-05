@@ -77,15 +77,27 @@ class IncidentRootCauseAnalysis:
         # Create rca doc
         if self.exec.page_exists(space=self.space, title=self.parent_page):
             try:
-                self.exec.create_page(
-                    self.space,
-                    title,
-                    body,
-                    parent_id=parent_page_id,
-                    type="page",
-                    representation="storage",
-                    editor="v2",
-                )
+                page_id = self.exec.get_page_id(self.space, title)
+                if page_id:
+                    logger.info(f"Updating existing RCA page {title}...")
+                    self.exec.update_page(
+                        page_id,
+                        title,
+                        body,
+                        parent_id=parent_page_id,
+                        type="page",
+                        representation="storage",
+                    )
+                else:
+                    logger.info(f"Creating new RCA page {title}...")
+                    self.exec.create_page(
+                        self.space,
+                        title,
+                        body,
+                        parent_id=parent_page_id,
+                        type="page",
+                        representation="storage",
+                    )
                 created_page_id = self.exec.get_page_id(self.space, title)
                 created_page_info = self.exec.get_page_by_id(
                     page_id=created_page_id

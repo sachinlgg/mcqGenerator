@@ -3,6 +3,7 @@ import logging
 import variables
 import random
 import time
+import asyncio
 
 
 from bot.audit.log import read as read_logs, write as write_log
@@ -20,7 +21,7 @@ from bot.models.incident import (
 )
 from bot.models.pager import read_pager_auto_page_targets
 from bot.shared import tools
-from bot.slack.client import check_user_in_group
+from bot.slack.client import (check_user_in_group,slack_web_client,)
 from bot.slack.handler import app, help_menu
 from bot.slack.messages import (
     incident_list_message,
@@ -36,6 +37,7 @@ from bot.templates.incident.updates import (
 )
 from bot.templates.tools import parse_modal_values
 from datetime import datetime
+from bot.incident import actions as inc_actions
 
 logger = logging.getLogger("slack.modals")
 
@@ -678,6 +680,209 @@ def handle_submission(ack, body, client):
             channel_id=channel_id,
             last_update_sent=tools.fetch_timestamp(),
         )
+
+
+
+
+"""
+Catch Me On Incident
+"""
+
+@app.action("open_incident_catch_me_up_modal")
+@app.shortcut("open_incident_catch_me_up_modal")
+def open_modal(ack, body, client):
+    """
+    Provides the modal that will provide trigger catch me on incident
+    """
+    ack()
+
+    # Build blocks for open incidents
+    database_data = db_read_open_incidents_sorted(return_json=False, order_aesc=False)
+
+    response = open_incident_catch_me_up_modal_auto_select_incident(ack,body,client,database_data)
+    response_state = parse_modal_values(response)
+    auto_select_current_channel_id = response_state['incident_catch_me_up_modal_select_incident_auto_select_shortcut']
+    index = tools.find_index_in_obj_list(database_data,"channel_id",auto_select_current_channel_id)
+    view = {
+        "type": "modal",
+        # View identifier
+        "callback_id": "open_incident_catch_me_up_modal",
+        "title": {"type": "plain_text", "text": "Catch Me On Incident"},
+        "submit": {"type": "plain_text", "text": "Submit"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Catch me on Incident is a feature"
+                            + "that reads context from the incident channel and transcripts"
+                            + "providing a brief summary of what's going on with the incident.",
+                },
+            },
+            {
+                "block_id": "open_incident_catch_me_up_modal_incident_channel",
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Choose Incident Channel:",
+                },
+                "accessory": {
+                    "type": "static_select",
+                    "action_id": "incident_catch_me_up_modal_select_incident",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select an ongoing incident...",
+                        "emoji": True,
+                    },
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": "None",
+                                "emoji": True,
+                            },
+                            "value": "none",
+                        }
+                        if len(database_data) == 0
+                        else {
+                            "text": {
+                                "type": "plain_text",
+                                "text": f"<#{inc.channel_id}>",
+                                "emoji": True,
+                            },
+                            "value": f"<#{inc.channel_id}>",
+                        }
+                        for inc in database_data
+                        if inc.status != "resolved"
+                    ],
+                    "initial_option": {
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"<#{auto_select_current_channel_id}>",
+                            "emoji": True,
+                        },
+                        "value": f"<#{auto_select_current_channel_id}>",
+                    } if index != -1
+                    else {
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"<#{database_data[0].channel_id}>",
+                            "emoji": True,
+                        },
+                        "value": f"<#{database_data[0].channel_id}>",
+                    }
+                },
+            },
+        ]
+        if len(database_data) != 0
+        else [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "There are currently no open incidents.",
+                },
+            },
+        ],
+    }
+    if len(database_data) == 0:
+        del view["submit"]
+    client.views_update(view_id=response["view"]["id"],hash=response["view"]["hash"],view= view)
+
+
+def open_incident_catch_me_up_modal_auto_select_incident (ack, body, client,database_data):
+    ack()
+
+    view = {
+        "type": "modal",
+        # View identifier
+        "callback_id": "open_incident_catch_me_up_modal",
+        "title": {"type": "plain_text", "text": "Catch Me On Incident"},
+        "submit": {"type": "plain_text", "text": "Submit"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Catch me on Incident is a feature"
+                            + "that reads context from the incident channel and transcripts"
+                            + "providing a brief summary of what's going on with the incident.",             
+                },
+            },
+            {
+                "type": "section",
+                "block_id": "open_incident_catch_me_up_modal_incident_channel_auto_select",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Choose Incident Channel:"
+                },
+                "accessory": {
+                    "action_id": "incident_catch_me_up_modal_select_incident_auto_select_shortcut",
+                    "type": "conversations_select",
+                    "default_to_current_conversation": True,
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select an ongoing incident..."
+                    }
+                }
+            },
+        ]
+        if len(database_data) != 0
+        else [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "There are currently no open incidents.",
+                },
+            },
+        ],
+    }
+    response = client.views_open(
+        trigger_id=body["trigger_id"],
+        view=view,
+    )
+    return response
+
+
+
+@app.view("open_incident_catch_me_up_modal")
+def handle_submission(ack, body, client):
+
+    """
+    Handles open_incident_catch_me_up_modal
+    """
+    ack()
+    parsed = parse_modal_values(body)
+    channel_id = parsed.get("incident_catch_me_up_modal_select_incident")
+    # Extract the channel ID without extra characters
+    for character in "#<>":
+        channel_id = channel_id.replace(character, "")
+    try:
+        incident_data = db_read_incident(channel_id=channel_id)
+        incident_slack_messages = inc_actions.get_incident_slack_thread(incident_data.channel_id)
+        incident_catch_up_summary = asyncio.run(inc_actions.generate_catch_me_on_incident(incident_data.channel_id, incident_slack_messages))
+        user = body["user"]["id"]
+
+        client.chat_postEphemeral(
+            channel=incident_data.channel_id,
+            user= user,
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "plain_text",
+                        "text": f"{incident_catch_up_summary}",
+                        "emoji": True
+                    }
+                },
+            ],
+            text="Catch me on incident:",
+        )
+
+    except Exception as error:
+        logger.error(f"Error getting summary out for {channel_id}: {error}")
+        
 
 
 """
@@ -2262,3 +2467,4 @@ def get_severity_context():
         elif sev.upper() == "SEV4":
             text_lines.append(f"*SEV4:* This incident has a low impact and can be resolved at a convenient time.")
     return "\n".join(text_lines)
+

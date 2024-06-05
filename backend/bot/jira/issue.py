@@ -48,6 +48,7 @@ class JiraIssue:
                     "summary": self.summary,
                 }
             )
+            # logger.info(f"summary Ticket {self.summary} \n Desc Ticket {self.description} \n ")
             return resp
         except requests.exceptions.HTTPError as error:
             logger.error(f"Error creating Jira issue: {error}")

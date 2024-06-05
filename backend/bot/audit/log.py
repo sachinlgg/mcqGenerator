@@ -160,3 +160,38 @@ def write(
     finally:
         database_session.close()
         database_session.remove()
+
+
+
+def read_rca_created_event_content(
+        incident_id: str, database_session: scoped_session = Session
+) -> Dict:
+    """
+    Read audit log and filter for RCA CREATED event to extract content values.
+    """
+    try:
+        audit_logs = (
+            database_session.query(AuditLog)
+            .filter_by(incident_id=incident_id)
+            .all()
+        )
+
+        rca_event_log = {"rca_channel_id": ""}
+        if not audit_logs:
+            logger.debug(f"No audit log record for {incident_id}")
+            return rca_event_log
+
+        for log_entry in audit_logs:
+            for event in log_entry.data:
+                if event.get("log") == "RCA channel was created.":
+                    rca_event_log = event
+                    rca_event_log["rca_channel_id"] = event.get("content", "")
+                    # rca_created_contents.append(event.get("content", ""))
+        return rca_event_log
+
+    except Exception as error:
+        logger.error(f"Failed to read audit log of RCA channel was created for incident {incident_id}: {error}")
+        return []
+    finally:
+        database_session.close()
+        database_session.remove()
