@@ -2381,21 +2381,23 @@ def handle_submission(ack, body, client, view):
     Handles open_incident_create_jira_issue_modal
     """
     ack()
-    incident_id = body.get("view").get("blocks")[0].get("block_id")
+    channel_id = body.get("view").get("blocks")[0].get("block_id")
+
     parsed = parse_modal_values(body)
     try:
+        incident_data = db_read_incident(channel_id=channel_id)
         resp = JiraIssue(
-            incident_id=incident_id,
+            incident_id=incident_data.incident_id,
             description=parsed.get("jira.description_input"),
             issue_type=parsed.get("jira.type_select"),
             priority=parsed.get("jira.priority_select"),
             summary=parsed.get("jira.summary_input"),
         ).new()
         issue_link = "{}/browse/{}".format(config.atlassian_api_url, resp.get("key"))
-        db_update_jira_issues_col(channel_id=incident_id, issue_link=issue_link)
+        db_update_jira_issues_col(channel_id=channel_id, issue_link=issue_link)
         try:
             resp = client.chat_postMessage(
-                channel=incident_id,
+                channel=channel_id,
                 blocks=[
                     {
                         "type": "section",
@@ -2458,7 +2460,7 @@ def handle_submission(ack, body, client, view):
                 timestamp=resp.get("ts"),
             )
         except Exception as error:
-            logger.error(f"Error sending Jira issue message for {incident_id}: {error}")
+            logger.error(f"Error sending Jira issue message for {incident_data.incident_id}: {error}")
     except Exception as error:
         logger.error(error)
 

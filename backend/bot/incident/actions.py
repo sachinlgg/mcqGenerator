@@ -1157,10 +1157,11 @@ async def create_automated_jira_action_items(incident_immediate_actions_list: Li
 
     try:
         channel_id = incident_details_info["incident_data"].channel_id
+        incident_id = incident_details_info["incident_data"].incident_id
         logger.info(f"Generating Auto Action Items in Jira for Channel {channel_id}")
         for immediate_actions_ticket in incident_immediate_actions_list:
             resp = JiraIssue(
-                incident_id=channel_id,
+                incident_id=incident_id,
                 description=immediate_actions_ticket.get("description"),
                 issue_type="Task",
                 priority="high",

@@ -221,6 +221,16 @@ class Configuration:
                                         "type": "list",
                                         "empty": False,
                                     },
+                                    "auto_create_incident": {
+                                        "required": False,
+                                        "type": "boolean",
+                                        "empty": False,
+                                    },
+                                    "auto_create_incident_type": {
+                                        "required": False,
+                                        "type": "string",
+                                        "empty": False
+                                    }
                                 },
                             },
                         },

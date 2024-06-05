@@ -17,7 +17,7 @@ class JiraIssue:
         self.jira = JiraApi()
         self.exec = self.jira.api
         self.incident_id = incident_id
-        self.incident_data = db_read_incident(channel_id=self.incident_id)
+        self.incident_data = db_read_incident(incident_id=self.incident_id)
 
         self.description = description
         self.issue_type = issue_type

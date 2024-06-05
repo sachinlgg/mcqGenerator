@@ -74,6 +74,8 @@ integrations:
       auto_create_action_item: true
       labels:
         - incident-management
+      auto_create_incident: true
+      auto_create_incident_type: Task
   # Simply provide an empty dict to enable PagerDuty
   pagerduty: {}
   # Enable Statuspage integration
