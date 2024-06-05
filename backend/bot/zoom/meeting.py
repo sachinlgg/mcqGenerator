@@ -36,6 +36,7 @@ class ZoomMeeting:
                 "participant_video": True,
                 "use_pmi": False,
                 "waiting_room": False,
+                "auto_recording": self.__enable_recording()
             },
             "topic": "Incident Discussion",
             "type": 2,
@@ -75,6 +76,14 @@ class ZoomMeeting:
         except Exception as error:
             logger.error(f"Error creating token for Zoom API: {error}")
 
+    def __enable_recording(self) -> str:
+        if "zoom" in config.active.integrations and config.active.integrations.get(
+            "zoom"
+        ).get("enable_recording", False):
+            return 'cloud'
+        else:
+            return 'none'
+    
     def test_auth(self):
         token = self.__generate_token()
         if not token:

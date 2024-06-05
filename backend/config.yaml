@@ -84,11 +84,13 @@ integrations:
 #    # If not provided, everyone can manage Statuspage incidents from Slack.
 #    # permissions:
 #    #   groups:
-#    #     - my-slack-group
+#    #     - my-slack-gif you've dataroup
 #  # Enable Zoom integration
   zoom:
     # Set to true to automatically generate a Zoom meeting for each incident
     auto_create_meeting: true
+    # Enable cloud recording or not
+    enable_recording: false
   chatgpt:
     # Set to true to automatically improve a RCA for each incident using chat gpt
     auto_improve_rca: true

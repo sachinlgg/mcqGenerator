@@ -261,6 +261,11 @@ class Configuration:
                                 "type": "boolean",
                                 "empty": False,
                             },
+                            "enable_recording": {
+                                "required": False,
+                                "type": "boolean",
+                                "empty": False,
+                            },
                         },
                     },
                     "chatgpt": {
