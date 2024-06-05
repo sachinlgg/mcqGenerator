@@ -194,6 +194,7 @@ def open_modal(ack, body, client):
                     "type": "plain_text",
                     "text": "A brief description of the Incident.",
                 },
+                "multiline": True,
             },
             "label": {"type": "plain_text", "text": "What's going on? "},
         },
@@ -516,6 +517,7 @@ def open_modal(ack, body, client):
                         "type": "plain_text",
                         "text": "e.g. API, Authentication, Dashboards",
                     },
+                    "multiline": True,
                 },
                 "label": {
                     "type": "plain_text",
@@ -532,6 +534,7 @@ def open_modal(ack, body, client):
                         "type": "plain_text",
                         "text": "A brief message to include with this update.",
                     },
+                    "multiline": True,
                 },
                 "label": {
                     "type": "plain_text",
@@ -602,6 +605,7 @@ def open_incident_general_update_modal_auto_select_incident (ack, body, client,d
                         "type": "plain_text",
                         "text": "e.g. API, Authentication, Dashboards",
                     },
+                    "multiline": True,
                 },
                 "label": {
                     "type": "plain_text",
@@ -618,6 +622,7 @@ def open_incident_general_update_modal_auto_select_incident (ack, body, client,d
                         "type": "plain_text",
                         "text": "A brief message to include with this update.",
                     },
+                    "multiline": True,
                 },
                 "label": {
                     "type": "plain_text",
@@ -1615,6 +1620,7 @@ def incident_bot_timeline_selected_incident_blocks(incident: str):
                 "element": {
                     "type": "plain_text_input",
                     "action_id": "update_incident_bot_timeline_text",
+                    "multiline": True,
                 },
                 "label": {"type": "plain_text", "text": "Text", "emoji": True},
             },
@@ -2240,6 +2246,7 @@ def open_modal(ack, body, client):
                 "type": "plain_text_input",
                 "action_id": "jira.description_input",
                 "min_length": 1,
+                "multiline": True,
             },
             "label": {
                 "type": "plain_text",
