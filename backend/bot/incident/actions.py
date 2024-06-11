@@ -965,7 +965,7 @@ def get_incident_slack_thread(channel_id: str):
         formatted_history = remove_bot_lines(formatted_history)
     except Exception as error:
         logger.error(
-            f"Error Generating Incident summary for {channel_id}: {error}"
+            f"Error Generating Incident Slack Thread for {channel_id}: {error}"
         )
     return formatted_history
 

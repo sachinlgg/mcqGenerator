@@ -133,8 +133,8 @@ def get_formatted_channel_history(channel_id: str, channel_name: str) -> str:
     formatted_channel_history += f"Slack channel history for incident {channel_name}\n"
 
     for message in replaced_messages_string:
-        user = message["user"]
-        text = message["text"]
+        user = message.get("user") or message.get("username")
+        text = message.get("text")
         timestamp = datetime.datetime.fromtimestamp(int(message["ts"].split(".")[0]))
         prefix = f"* {timestamp}"
         if "has joined the channel" in text:

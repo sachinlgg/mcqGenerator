@@ -485,6 +485,7 @@ def db_update_rca_channel_id(
             .one()
         )
         incident.rca_channel_id = rca_channel_id
+        logger.info(f"Incident rca channel id updated for {incident_id}: channel_id {channel_id} and rca_channel_id {rca_channel_id}")
         Session.commit()
     except Exception as error:
         logger.error(f"Incident rca channel id update failed for {incident_id}: {error}")
