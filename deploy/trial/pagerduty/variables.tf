@@ -1,11 +1,11 @@
 variable "pagerduty_token" {
   description = "Token"
-  default     = "u+JRfis8vh74HH1x42Zw"
+  default     = "u+A4H-KbiuwZwyenBo-w"
 }
 
 variable "pagerduty_account_email" {
   description = "email"
-  default     = "apd3@gooctoplus.com"
+  default     = "apd4@gooctoplus.com"
 }
 
 variable "pagerduty_account_first_name" {
