@@ -98,7 +98,7 @@ def channel_message_cron(latest_incident_details: dict = None, slack_users: any 
             "triggered": 0,
         },
         {
-            "wait_message": "encountering a 422 status code",
+            "wait_message": "notification service api encountering a 422 status code",
             "trigger_message": demo_message_phase5,
             "triggered": 0,
         },
@@ -113,7 +113,7 @@ def channel_message_cron(latest_incident_details: dict = None, slack_users: any 
             "triggered": 0,
         },
         {
-            "wait_message": "jira issue has been created",
+            "wait_message": "implement effective rate-limiting measures in our infrastructure",
             "trigger_message": demo_message_phase8,
             "triggered": 0,
         }
@@ -204,7 +204,7 @@ demo_message_phase6 = [
     },
     {
         "name": "Mat",
-        "message": "During the Payday sale, our extensive campaign overwhelmed the notification service, resulting in the observed issues.\n\nTo address this, we've proactively reduced the batch size to 10,000 temporarily. This adjustment aims to alleviate the strain on the system and allow for potential automatic recovery.",
+        "message": "During the Payday sale, our extensive campaign overwhelmed the notification service, resulting in the observed issues.\n\nTo address this, we've proactively reduced the batch size to 10,000 temporarily. This adjustment aims to alleviate the strain on the system and allow for potential automatic recovery. Would you mind changing the Incident status to Monitoring",
         "delay": "10",
     },
 ]
@@ -221,7 +221,7 @@ demo_message_phase8 = [
     {
         "name": "Rahul",
         "message": "The order notifications are currently in the processing phase, and we anticipate that it will take an additional 5 minutes to complete the processing of all messages from the queues.",
-        "delay": "10",
+        "delay": "45",
     },
     {
         "name": "Michael",
