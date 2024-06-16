@@ -9,13 +9,19 @@ from bot.shared import tools
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
+
+from typing import Optional
+
 from typing import Any, Dict, List
 
 logger = logging.getLogger("slack.client")
 
+rate_limit_handler = RateLimitErrorRetryHandler(max_retry_count=2)
+
 # Initialize Slack clients
 slack_web_client = WebClient(token=config.slack_bot_token)
-
+slack_web_client.retry_handlers.append(rate_limit_handler)
 """
 Reusable variables
 """
@@ -292,7 +298,7 @@ def check_bot_user_in_digest_channel():
         )
 
 
-def get_slack_users() -> List[Dict[str, Any]]:
+def get_slack_users(exclude_full_user_details: bool = True) -> List[Dict[str, Any]]:
     """
     Retrieves Slack users from a workspace using pagination
     """
@@ -318,6 +324,14 @@ def get_slack_users() -> List[Dict[str, Any]]:
             "name": user["name"],
             "real_name": user["profile"]["real_name"],
             "id": user["id"],
+            **(
+                {}
+                if exclude_full_user_details
+                else {
+                    "profile_image": user["profile"].get("image_original", user["profile"].get("image_512", "")),
+                    "profile_icon": user["profile"].get("image_32", ""),
+                }
+            )
         }
         for user in users
     ]
@@ -353,3 +367,42 @@ def get_conversation_members(channel_id: str) -> List[str]:
         )
 
     return members
+
+def send_custom_message(channel_id: str, user_id: str, message: str, username: Optional[str] = None, icon_url: Optional[str] = None, icon_emoji: Optional[str] = None):
+    try:
+        response = slack_web_client.chat_postMessage(
+            channel=channel_id,
+            text=message,
+            username=username,
+            icon_url=icon_url,
+            icon_emoji=icon_emoji,  # Set to False to customize the message appearance
+        )
+        logger.info(f"Message sent to {channel_id} as user {user_id}: {response['ts']}")
+        return response
+    except SlackApiError as e:
+        logger.error(f"Error sending message: {e.response['error']}")
+
+
+def get_channel_last_message(channel_id: str) -> str:
+    """Return the last message from a Slack channel as a JSON string.
+
+    Args:
+    - channel_id (str): The ID of the Slack channel to retrieve the last message from.
+
+    Returns:
+    - str: JSON string representing the last message in the channel.
+    """
+    try:
+        # Call conversations.history method to fetch channel history
+        response = slack_web_client.conversations_history(channel=channel_id, limit=5)
+
+        # Check if messages were found
+        if response['messages']:
+            return json.dumps(response['messages'])
+        else:
+            logger.info(f"Channel ${channel_id} Last message is empty ")
+            return None
+
+    except SlackApiError as e:
+        logger.error(f"Error fetching the last message from ${channel_id}")
+        return None

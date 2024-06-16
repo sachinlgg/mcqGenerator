@@ -133,6 +133,7 @@ from .routes.job import job
 from .routes.pager import pager
 from .routes.setting import setting
 from .routes.user import user
+from .routes.demo import demo
 
 app.register_blueprint(auth, url_prefix=live_api_route)
 app.register_blueprint(health_check, url_prefix=live_api_route)
@@ -141,3 +142,4 @@ app.register_blueprint(job, url_prefix=live_api_route)
 app.register_blueprint(pager, url_prefix=live_api_route)
 app.register_blueprint(setting, url_prefix=live_api_route)
 app.register_blueprint(user, url_prefix=live_api_route)
+app.register_blueprint(demo, url_prefix=live_api_route)
