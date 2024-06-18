@@ -1,6 +1,7 @@
 import logging
 import json
 import time
+import threading
 
 logger = logging.getLogger("api.demo")
 from flask import Blueprint, jsonify, request, Response
@@ -12,10 +13,17 @@ from bot.slack.client import ( send_custom_message, get_slack_users, get_channel
 
 demo = Blueprint("demo", __name__)
 
+# Simple cache to keep track of sent messages
+message_cache = {}
+incident_demo_state = {}
+
+
 @demo.route("/demo-incident", methods=["GET"])
 def demo_incident():
     try:
         hash_param = request.args.get('hash')
+        incident_id = request.args.get('incident_id')
+        incident_state = request.args.get('incident_state')
         # Check if the hash parameter is provided
         if not hash_param:
             return jsonify({"error": "Missing hash parameter"}), 400
@@ -25,10 +33,26 @@ def demo_incident():
         incidents = db_read_open_incidents_sorted(return_json=False, order_aesc=False)
         if not incidents or len(incidents) == 0:
             return jsonify({"error": "No Active incidents found"}), 404
-        latest_incident_channel = incidents[0].channel_name;
-        latest_incident_details = incidents[0];
-        send_demo_messages(latest_incident_details);
-        logger.info(f" Sending Demo Message on ${latest_incident_channel} ")
+        latest_incident_details = None
+        latest_incident_channel = ""
+        if incident_id is None:
+            latest_incident_channel = incidents[0].channel_name
+            latest_incident_details = incidents[0]
+        else:
+            for incident in incidents:
+                if incident_id == incident.incident_id:
+                    latest_incident_channel = incident.channel_name
+                    latest_incident_details = incident
+                    break
+        if incident_state is not None:
+            incident_state = int(incident_state)
+            incident_demo_state[latest_incident_channel] = incident_state
+            if incident_state == 0:
+                logger.info(f"Stopping Demo Message on ${latest_incident_channel}")
+                return jsonify({"data": "Success" }), 200
+        if latest_incident_details:
+            logger.info(f" Sending Demo Message on ${latest_incident_channel} ")
+            send_demo_messages(latest_incident_details);         
         return jsonify({"data": "Success" }), 200
     except Exception as error:
         return (
@@ -37,6 +61,29 @@ def demo_incident():
             {"ContentType": "application/json"},
         )
 
+
+
+@demo.route("/clear-cache", methods=["GET"])
+def clear_cache():
+    try:
+        hash_param = request.args.get('hash')
+        if not hash_param:
+            return jsonify({"error": "Missing hash parameter"}), 400
+        expected_hash = "aman_sachin_2024_octodemo"
+        if hash_param != expected_hash:
+            return jsonify({"error": "Invalid hash parameter"}), 403
+        global message_cache, incident_demo_state
+        message_cache.clear()
+        incident_demo_state.clear()
+        logger.info("Local cache cleared successfully.")
+        return jsonify({"message": "Local cache cleared successfully."}), 200
+    except Exception as error:
+        logger.error(f"Error clearing local cache: {error}")
+        return (
+            jsonify({"error": str(error)}),
+            500,
+            {"ContentType": "application/json"},
+        )
 
 
 def send_demo_messages(latest_incident_details: dict = None):
@@ -59,6 +106,7 @@ def find_user_details(slack_users: list, user_name: str) -> dict:
             return  user_detail
     return None
 
+message_cache_lock = threading.Lock()
 
 def send_demo_messages_in_batch(latest_incident_details: dict = None, batch_message: any = None, slack_users: any = None):
     try:
@@ -68,10 +116,16 @@ def send_demo_messages_in_batch(latest_incident_details: dict = None, batch_mess
             user_name = message_data["name"]
             message_content = message_data["message"]
             user_detail = find_user_details(slack_users, user_name)
-            if user_detail:
-                send_custom_message(channel_id=latest_incident_details.channel_id, user_id=user_detail["user_id"], message=message_content, username= user_name, icon_url = user_detail["profile_image"])
-            else:
-                logger.warning(f"User '{user_name}' not found in Slack users list.")
+            cache_key = f"{latest_incident_details.channel_id}_{user_name}_{message_content}"
+            with message_cache_lock:
+                if cache_key in message_cache and message_cache[cache_key]:
+                    logger.info(f"Message already sent: {cache_key}")
+                    continue
+                if user_detail:
+                    send_custom_message(channel_id=latest_incident_details.channel_id, user_id=user_detail["user_id"], message=message_content, username= user_name, icon_url = user_detail["profile_image"])
+                    message_cache[cache_key] = True
+                else:
+                    logger.warning(f"User '{user_name}' not found in Slack users list.")
     except Exception as error:
         logger.error(f"Error while Sending Automated Demo Message ${error}")
 
@@ -120,8 +174,12 @@ def channel_message_cron(latest_incident_details: dict = None, slack_users: any 
     ]
     start_time = time.time()
     max_duration = 15 * 60
+    incident_demo_state[latest_incident_details.channel_name] = 1
 
     while time.time() - start_time < max_duration:
+        if incident_demo_state.get(latest_incident_details.channel_name, 1) != 1:
+            logger.info(f"Stopping the sending of demo messages for ${latest_incident_details.channel_name}.")
+            return 
         last_channel_message = get_channel_last_message(latest_incident_details.channel_id)
         logger.info(f"last message in slack {last_channel_message.lower()} \n")
         for wait_message_data in wait_message_demo:
