@@ -5,6 +5,8 @@ Author: Sachin
 Author-email: sachin.plaksha@gmail.com
 Requires-Dist: openai
 Requires-Dist: langchain
+Requires-Dist: langchain_openai
+Requires-Dist: langchain-community
 Requires-Dist: streamlit
 Requires-Dist: python-dotenv
 Requires-Dist: PyPDF2
