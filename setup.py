@@ -5,6 +5,6 @@ setup(
     version='0.0.1',
     author='Sachin',
     author_email='sachin.plaksha@gmail.com',
-    install_requires=['openai', 'langchain', 'langchain_openai', 'streamlit', 'python-dotenv', 'PyPDF2'],
+    install_requires=['openai', 'langchain', 'langchain_openai', 'langchain-community', 'streamlit', 'python-dotenv', 'PyPDF2'],
     packages=find_packages()
 )
